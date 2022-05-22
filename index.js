@@ -19,7 +19,7 @@ class Cocasus {
 
     this.options = {
       listening: {
-        message: 'Listening on http://$host:$port',
+        message: 'App listening on http://$host:$port',
         verbose: true,
         host: process.env.HOST || 'localhost',
         port: process.env.PORT || 8080,
