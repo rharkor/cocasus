@@ -1,0 +1,137 @@
+{
+  "package.json": {
+    "name": "package.json",
+    "type": "file",
+    "path": "utils/models/basic/package.json",
+    "replace": { "$name": "$name" }
+  },
+  "install": {
+    "name": "npm i",
+    "type": "command"
+  },
+  "config.js": {
+    "name": "config.js",
+    "type": "file",
+    "path": "utils/models/basic/config.js"
+  },
+  "app.js": {
+    "name": "app.js",
+    "type": "file",
+    "path": "utils/models/basic/app.js"
+  },
+  ".prettierrc.json": {
+    "name": ".prettierrc.json",
+    "type": "file",
+    "path": "utils/models/basic/.prettierrc.json"
+  },
+  "vendor": {
+    "name": "vendor",
+    "type": "directory",
+    "childrens": {
+      "http": {
+        "name": "http",
+        "type": "directory",
+        "childrens": {
+          "controllers": {
+            "name": "controllers",
+            "type": "directory",
+            "childrens": {
+              "Controller.js": {
+                "name": "Controller.js",
+                "type": "file",
+                "path": "utils/models/controllers/Controller.js"
+              }
+            }
+          },
+          "requests": {
+            "name": "requests",
+            "type": "directory",
+            "childrens": {
+              "Request.js": {
+                "name": "Request.js",
+                "type": "file",
+                "path": "utils/models/requests/Request.js"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "controllers": {
+    "name": "controllers",
+    "type": "directory",
+    "childrens": {
+      "HomeController.js": {
+        "name": "HomeController.js",
+        "type": "file",
+        "path": "utils/models/controllers/BaseController.js",
+        "replace": { "$name": "HomeController" }
+      }
+    }
+  },
+  "database": {
+    "name": "database",
+    "type": "directory",
+    "childrens": {
+      "migrations": {
+        "name": "migrations",
+        "type": "directory",
+        "childrens": {}
+      },
+      "models": {
+        "name": "models",
+        "type": "directory",
+        "childrens": {}
+      }
+    }
+  },
+  "resources": {
+    "name": "resources",
+    "type": "directory",
+    "childrens": {
+      "public": {
+        "name": "public",
+        "type": "directory",
+        "childrens": {}
+      },
+      "views": {
+        "name": "views",
+        "type": "directory",
+        "childrens": {
+          "index.html": {
+            "name": "index.html",
+            "type": "file",
+            "path": "utils/models/view/base.html"
+          }
+        }
+      },
+      "images": {
+        "name": "images",
+        "type": "directory",
+        "childrens": {}
+      },
+      "static": {
+        "name": "static",
+        "type": "directory",
+        "childrens": {
+          "images": {
+            "name": "images",
+            "type": "directory",
+            "childrens": {}
+          },
+          "styles": {
+            "name": "styles",
+            "type": "directory",
+            "childrens": {}
+          },
+          "scripts": {
+            "name": "scripts",
+            "type": "directory",
+            "childrens": {}
+          }
+        }
+      }
+    }
+  }
+}
