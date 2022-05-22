@@ -21,7 +21,7 @@ class Cocasus {
       listening: {
         message: 'App listening on http://$host:$port',
         verbose: true,
-        host: process.env.HOST || 'localhost',
+        host: process.env.HOST || null,
         port: process.env.PORT || 8080,
       },
       init: {
@@ -151,14 +151,21 @@ class Cocasus {
       );
     }
     this.setupLogger();
-    this.server = this.app.listen(port, host, () => {
+    const callbackRun = () => {
       if (this.options.listening.verbose) {
         const message = this.options.listening.message
           .replace('$host', host)
           .replace('$port', port);
         console.log(message);
       }
-    });
+    };
+    if (!host) {
+      console.log('heeheh');
+      host = 'localhost';
+      this.server = this.app.listen(port, callbackRun);
+    } else {
+      this.server = this.app.listen(port, host, callbackRun);
+    }
   }
 
   register(method, path, callback) {

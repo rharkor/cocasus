@@ -12,7 +12,7 @@
   "config.js": {
     "name": "config.js",
     "type": "file",
-    "path": "utils/models/basic/config.js"
+    "path": "utils/models/basic/configApi.js"
   },
   "app.js": {
     "name": "app.js",
