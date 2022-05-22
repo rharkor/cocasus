@@ -5,7 +5,7 @@ const { dirname } = require('path');
 require('dotenv').config();
 
 const Logger = require('./middlewares/Logger.middleware.js');
-const Structure = require('./utils/structure.js');
+const Structure = require('./utils/Structure.js');
 
 class Cocasus {
   constructor(app = null, options = {}, debug = process.env.DEBUG || true) {

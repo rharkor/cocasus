@@ -51,11 +51,29 @@ class Cli {
               describe: 'The name of the project',
               alias: 'n',
               type: 'string',
+            })
+            .positional('root', {
+              describe: 'The root of the project',
+              alias: 'r',
+              type: 'string',
+              default: '.',
+            })
+            .positional('deps', {
+              describe:
+                'Install automatically or not the dependencies of the project',
+              alias: 'd',
+              type: 'boolean',
+              default: true,
             });
         },
         async (argv) => {
           // ask for name
           const name = argv.name || (await this.askForName());
+          if (argv.root !== '.') {
+            this.structure.path = `${this.path}/${argv.root}`;
+            // Create the folder structure
+            fs.mkdirSync(this.structure.path, { recursive: true });
+          }
           if (argv.force) {
             this.structure.createStructure(
               null,
@@ -63,7 +81,8 @@ class Cli {
               {
                 name,
               },
-              argv.type
+              argv.type,
+              argv.deps
             );
           } else {
             this.structure.createStructure(
@@ -72,7 +91,8 @@ class Cli {
               {
                 name,
               },
-              argv.type
+              argv.type,
+              argv.deps
             );
           }
         }
