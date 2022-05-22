@@ -19,6 +19,16 @@
     "type": "file",
     "path": "utils/models/basic/app.js"
   },
+  "Dockerfile": {
+    "name": "Dockerfile",
+    "type": "file",
+    "path": "utils/models/basic/Dockerfile"
+  },
+  ".env.example": {
+    "name": ".env.example",
+    "type": "file",
+    "path": "utils/models/basic/.env.example"
+  },
   ".prettierrc.json": {
     "name": ".prettierrc.json",
     "type": "file",

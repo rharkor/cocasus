@@ -8,7 +8,7 @@ const Logger = require('./middlewares/Logger.middleware.js');
 const Structure = require('./utils/structure.js');
 
 class Cocasus {
-  constructor(app = null, options = {}, debug = true) {
+  constructor(app = null, options = {}, debug = process.env.DEBUG || true) {
     if (app) {
       this.app = app;
     } else {
@@ -36,7 +36,7 @@ class Cocasus {
           path: './log',
           fileName: 'error.log',
           message: 'Something went wrong..',
-          exceptionCode: 500,
+          exceptionCode: process.env.EXCEPTION_CODE || 500,
         },
         access: {
           path: './log',

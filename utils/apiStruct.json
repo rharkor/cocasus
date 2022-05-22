@@ -8,5 +8,92 @@
   "install": {
     "name": "npm i",
     "type": "command"
+  },
+  "config.js": {
+    "name": "config.js",
+    "type": "file",
+    "path": "utils/models/basic/config.js"
+  },
+  "app.js": {
+    "name": "app.js",
+    "type": "file",
+    "path": "utils/models/basic/app.js"
+  },
+  "Dockerfile": {
+    "name": "Dockerfile",
+    "type": "file",
+    "path": "utils/models/basic/DockerfileApi"
+  },
+  ".env.example": {
+    "name": ".env.example",
+    "type": "file",
+    "path": "utils/models/basic/.envApi.example"
+  },
+  ".prettierrc.json": {
+    "name": ".prettierrc.json",
+    "type": "file",
+    "path": "utils/models/basic/.prettierrc.json"
+  },
+  "vendor": {
+    "name": "vendor",
+    "type": "directory",
+    "childrens": {
+      "http": {
+        "name": "http",
+        "type": "directory",
+        "childrens": {
+          "controllers": {
+            "name": "controllers",
+            "type": "directory",
+            "childrens": {
+              "Controller.js": {
+                "name": "Controller.js",
+                "type": "file",
+                "path": "utils/models/controllers/Controller.js"
+              }
+            }
+          },
+          "requests": {
+            "name": "requests",
+            "type": "directory",
+            "childrens": {
+              "Request.js": {
+                "name": "Request.js",
+                "type": "file",
+                "path": "utils/models/requests/Request.js"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "controllers": {
+    "name": "controllers",
+    "type": "directory",
+    "childrens": {
+      "HomeController.js": {
+        "name": "HomeController.js",
+        "type": "file",
+        "path": "utils/models/controllers/ApiController.js",
+        "replace": { "$name": "HomeController" }
+      }
+    }
+  },
+  "database": {
+    "name": "database",
+    "type": "directory",
+    "childrens": {
+      "migrations": {
+        "name": "migrations",
+        "type": "directory",
+        "childrens": {}
+      },
+      "models": {
+        "name": "models",
+        "type": "directory",
+        "childrens": {}
+      }
+    }
   }
 }

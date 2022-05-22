@@ -1,0 +1,4 @@
+DEBUG=true
+HOST=localhost
+PORT=8080
+EXCEPTION_CODE=500

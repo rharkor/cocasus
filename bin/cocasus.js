@@ -46,42 +46,35 @@ class Cli {
               alias: 't',
               type: 'string',
               default: 'web',
+            })
+            .positional('name', {
+              describe: 'The name of the project',
+              alias: 'n',
+              type: 'string',
             });
         },
-        (argv) => {
+        async (argv) => {
           // ask for name
-          inquirer
-            .prompt([
+          const name = argv.name || (await this.askForName());
+          if (argv.force) {
+            this.structure.createStructure(
+              null,
+              true,
               {
-                type: 'input',
-                name: 'name',
-                message: 'What is the name of your project?',
-                default: 'cocasus-app',
+                name,
               },
-            ])
-            .then((answers) => {
-              const name = answers.name;
-              if (argv.force) {
-                this.structure.createStructure(
-                  null,
-                  true,
-                  {
-                    name,
-                  },
-                  argv.type
-                );
-              } else {
-                this.structure.createStructure(
-                  null,
-                  false,
-                  {
-                    name,
-                  },
-                  argv.type
-                );
-              }
-              console.log('Initialized the project structure');
-            });
+              argv.type
+            );
+          } else {
+            this.structure.createStructure(
+              null,
+              false,
+              {
+                name,
+              },
+              argv.type
+            );
+          }
         }
       )
       .command(
@@ -93,6 +86,26 @@ class Cli {
         }
       )
       .parse();
+  }
+
+  askForName() {
+    return new Promise((resolve, reject) => {
+      inquirer
+        .prompt([
+          {
+            type: 'input',
+            name: 'name',
+            message: 'What is the name of your project?',
+            default: 'cocasus-app',
+          },
+        ])
+        .then((answers) => {
+          resolve(answers.name);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
   }
 
   getApp() {
