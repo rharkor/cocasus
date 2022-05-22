@@ -47,8 +47,8 @@ class Cocasus {
       },
       sass: {
         src: `${this.path}/resources/static/styles`,
-        dest: `${this.path}/resources/public`,
-        outputStyle: 'compressed',
+        dest: `${this.path}/resources/static/styles/compiled`,
+        outputStyle: debug ? 'nested' : 'compressed',
         type: 'sass',
       },
       debug,
@@ -68,13 +68,14 @@ class Cocasus {
 
     this.app.set('views', this.options.init.views);
     if (this.options.init.viewEngine) {
-      console.log('Assigning view engine', this.options.init.viewEngine);
       if (this.options.init.viewEngine === 'nunjucks') {
         const nunjucks = require('nunjucks');
         nunjucks.configure(this.options.init.views, {
           autoescape: true,
           express: this.app,
         });
+        this.app.engine('jinja', nunjucks.render);
+        this.app.set('view engine', 'jinja');
       }
     }
     this.app.use(
