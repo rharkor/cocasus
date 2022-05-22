@@ -1,0 +1,12 @@
+{
+  "package.json": {
+    "name": "package.json",
+    "type": "file",
+    "path": "utils/models/basic/package.json",
+    "replace": { "$name": "$name" }
+  },
+  "install": {
+    "name": "npm i",
+    "type": "command"
+  }
+}

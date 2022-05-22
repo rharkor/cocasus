@@ -99,10 +99,11 @@
         "name": "views",
         "type": "directory",
         "childrens": {
-          "index.html": {
-            "name": "index.html",
+          "base.jinja": {
+            "name": "base.jinja",
             "type": "file",
-            "path": "utils/models/view/base.html"
+            "path": "utils/models/view/base.jinja",
+            "replace": { "$name": "$name" }
           }
         }
       },
@@ -123,10 +124,16 @@
           "styles": {
             "name": "styles",
             "type": "directory",
-            "childrens": {}
+            "childrens": {
+              "style.sass": {
+                "name": "style.sass",
+                "type": "file",
+                "path": "utils/models/styles/style.sass"
+              }
+            }
           },
-          "scripts": {
-            "name": "scripts",
+          "javascripts": {
+            "name": "javascripts",
             "type": "directory",
             "childrens": {}
           }

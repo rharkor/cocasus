@@ -35,11 +35,18 @@ class Cli {
         'init',
         'Initialize the project structure',
         (yargs) => {
-          return yargs.positional('force', {
-            describe: 'force the initialization (overwrite existing files)',
-            alias: 'f',
-            type: 'boolean',
-          });
+          return yargs
+            .positional('force', {
+              describe: 'force the initialization (overwrite existing files)',
+              alias: 'f',
+              type: 'boolean',
+            })
+            .positional('type', {
+              describe: 'The type of utilisation [web|api]',
+              alias: 't',
+              type: 'string',
+              default: 'web',
+            });
         },
         (argv) => {
           // ask for name
@@ -55,9 +62,23 @@ class Cli {
             .then((answers) => {
               const name = answers.name;
               if (argv.force) {
-                this.structure.createStructure(null, true, { name });
+                this.structure.createStructure(
+                  null,
+                  true,
+                  {
+                    name,
+                  },
+                  argv.type
+                );
               } else {
-                this.structure.createStructure(null, false, { name });
+                this.structure.createStructure(
+                  null,
+                  false,
+                  {
+                    name,
+                  },
+                  argv.type
+                );
               }
               console.log('Initialized the project structure');
             });
@@ -87,7 +108,10 @@ class Cli {
       return app;
     } catch (e) {
       const moduleName = e.message.split("'")[1];
-      if (e.code === 'MODULE_NOT_FOUND' && moduleName === 'config.js') {
+      if (
+        e.code === 'MODULE_NOT_FOUND' &&
+        moduleName === `${this.path}/config.js`
+      ) {
         // Get the name of the not found module
         console.error('Please declare your app in config.js');
         return;

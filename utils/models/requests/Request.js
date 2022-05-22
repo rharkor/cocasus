@@ -11,12 +11,8 @@ class Request {
     data,
     root = `${dirname(require.main.filename)}/resources/views`
   ) {
-    // Get the file content
-    let content = fs.readFileSync(`${root}/${path}`, 'utf8');
-    // Render the file
-    content = nunjucks.renderString(content, data);
     return (req, res) => {
-      res.send(content);
+      res.render(`${root}/${path}`, data);
     };
   }
 

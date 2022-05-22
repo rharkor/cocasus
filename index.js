@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const sassMiddleware = require('node-sass-middleware');
 const { dirname } = require('path');
 require('dotenv').config();
 
@@ -27,6 +28,8 @@ class Cocasus {
         cors: true,
         json: true,
         static: `${this.path}/resources/static`,
+        views: `${this.path}/resources/views`,
+        viewEngine: 'nunjucks',
       },
       logger: {
         error: {
@@ -42,6 +45,12 @@ class Cocasus {
         object: null,
         enabled: true,
       },
+      sass: {
+        src: `${this.path}/resources/static/styles`,
+        dest: `${this.path}/resources/public`,
+        outputStyle: 'compressed',
+        type: 'sass',
+      },
       debug,
     };
     // Filter only the options that are not null
@@ -50,12 +59,55 @@ class Cocasus {
     this.init();
   }
 
+  init(options = {}, customApp = null) {
+    this.#plug();
+
+    if (customApp) {
+      this.app = customApp;
+    }
+
+    this.app.set('views', this.options.init.views);
+    if (this.options.init.viewEngine) {
+      console.log('Assigning view engine', this.options.init.viewEngine);
+      if (this.options.init.viewEngine === 'nunjucks') {
+        const nunjucks = require('nunjucks');
+        nunjucks.configure(this.options.init.views, {
+          autoescape: true,
+          express: this.app,
+        });
+      }
+    }
+    this.app.use(
+      sassMiddleware({
+        src: this.options.sass.src,
+        dest: this.options.sass.dest,
+        debug: this.options.debug,
+        outputStyle: this.options.sass.outputStyle,
+        indentedSyntax: this.options.sass.type === 'sass',
+      })
+    );
+
+    this.app.use(cors());
+    this.app.use(express.json());
+
+    // Setup the file directory
+    this.app.use(express.static(this.options.init.static));
+
+    this.options = this.assign(options, this.options);
+    if (this.options.logger.enabled) {
+      this.options.logger.object = new Logger(
+        this.options.logger,
+        this.options.debug
+      );
+    }
+  }
+
   assign(target, source) {
     const keys = Object.keys(source);
     const result = {};
     for (let i = 0; i < keys.length; i += 1) {
       const key = keys[i];
-      if (key in target && target[key] !== null) {
+      if (key in target) {
         if (typeof target[key] === 'object') {
           result[key] = this.assign(target[key], source[key]);
         } else {
@@ -66,28 +118,6 @@ class Cocasus {
       }
     }
     return result;
-  }
-
-  init(options = {}, customApp = null) {
-    this.#plug();
-
-    if (customApp) {
-      this.app = customApp;
-    }
-
-    this.app.use(cors());
-    this.app.use(express.json());
-
-    // Setup the file directory
-    this.app.use(express.static(this.options.init.static));
-
-    this.options = Object.assign(this.options, options);
-    if (this.options.logger.enabled) {
-      this.options.logger.object = new Logger(
-        this.options.logger,
-        this.options.debug
-      );
-    }
   }
 
   #plug() {

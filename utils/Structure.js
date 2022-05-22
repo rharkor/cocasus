@@ -9,13 +9,20 @@ class Structure {
     this.structure = JSON.parse(
       fs.readFileSync(`${__dirname}/struct.json`, 'utf8')
     );
+    this.apiStructure = JSON.parse(
+      fs.readFileSync(`${__dirname}/apiStruct.json`, 'utf8')
+    );
 
     this.path = path;
     this.loader = ['|', '/', '-', '\\'];
   }
 
-  createStructure(only = null, force = false, options = {}) {
-    this.#create(this.structure, this.path, only, force, options);
+  createStructure(only = null, force = false, options = {}, type = 'web') {
+    if (type === 'web') {
+      this.#create(this.structure, this.path, only, force, options);
+    } else if (type === 'api') {
+      this.#create(this.apiStructure, this.path, only, force, options);
+    }
   }
 
   #create(object, path = this.path, only = null, force = false, options = {}) {
@@ -32,7 +39,13 @@ class Structure {
             }
           }
           if (value.childrens) {
-            this.#create(value.childrens, `${path}/${value.name}`, only, force);
+            this.#create(
+              value.childrens,
+              `${path}/${value.name}`,
+              only,
+              force,
+              options
+            );
           }
         }
       } else if (value.type === 'file') {
@@ -42,7 +55,10 @@ class Structure {
           Object.keys(value.replace).forEach((key) => {
             const rkey = key.replace('$', '\\$');
             const regex = new RegExp(rkey, 'g');
-            if (value.replace[key].indexOf('$') !== -1) {
+            if (
+              value.replace[key].indexOf('$') !== -1 &&
+              options[key.slice(1)]
+            ) {
               content = content.replace(regex, options[key.slice(1)]);
             } else {
               content = content.replace(regex, value.replace[key]);

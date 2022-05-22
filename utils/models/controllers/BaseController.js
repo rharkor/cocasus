@@ -5,7 +5,7 @@ class $name extends Controller {
   static path = __dirname;
 
   static index() {
-    return `Controller ${this.name}`;
+    return Request.view('base.jinja', { date: new Date() });
   }
 }
 
