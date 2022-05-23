@@ -23,7 +23,7 @@ class Logger {
     const error = (err, req, res, next) => {
       errorLogger.error(err.message);
       res
-        .status(this.options.error.exceptionCode)
+        .status(parseInt(this.options.error.exceptionCode))
         .send({ error: this.debug ? err.message : this.options.error.message });
     };
 
@@ -56,7 +56,7 @@ class Logger {
   }
 
   getLoggers() {
-    if (this.loggers.isEmpty()) {
+    if (Object.keys(this.loggers).length === 0) {
       this.createLoggers();
     }
     return Object.values(this.loggers);

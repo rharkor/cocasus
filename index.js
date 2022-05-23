@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const Logger = require('./middlewares/Logger.middleware.js');
 const Structure = require('./utils/Structure.js');
+const Database = require('./utils/Database.js');
 
 class Cocasus {
   constructor(app = null, options = {}, debug = process.env.DEBUG || true) {
@@ -14,6 +15,7 @@ class Cocasus {
     } else {
       this.app = express();
     }
+
     this.path = dirname(require.main.filename);
     this.routes = [];
 
@@ -47,9 +49,18 @@ class Cocasus {
       },
       sass: {
         src: `${this.path}/resources/static/styles`,
-        dest: `${this.path}/resources/static/styles/compiled`,
+        dest: `${this.path}/resources/static/styles`,
         outputStyle: debug ? 'nested' : 'compressed',
         type: 'sass',
+      },
+      db: {
+        database: process.env.DB_DATABASE || 'cocasus',
+        username: process.env.DB_USER || 'my-user',
+        password: process.env.DB_PASSWORD || 'my-password',
+        host: process.env.DB_HOST || 'localhost',
+        dialect: process.env.DB_DIALECT || 'mysql',
+        models: 'database/models',
+        migrations: 'database/migrations',
       },
       debug,
     };
@@ -60,11 +71,15 @@ class Cocasus {
   }
 
   init(options = {}, customApp = null) {
-    this.#plug();
-
     if (customApp) {
       this.app = customApp;
     }
+
+    // Init the db connection
+    this.db = new Database(this.options.db);
+    this.db.referenceAllModels();
+    // Simplify the access to the models
+    this.models = this.db.models;
 
     this.app.set('views', this.options.init.views);
     if (this.options.init.viewEngine) {
@@ -85,6 +100,7 @@ class Cocasus {
         debug: this.options.debug,
         outputStyle: this.options.sass.outputStyle,
         indentedSyntax: this.options.sass.type === 'sass',
+        prefix: '/styles',
       })
     );
 
@@ -121,13 +137,6 @@ class Cocasus {
     return result;
   }
 
-  #plug() {
-    Object.prototype.isEmpty = function () {
-      for (var prop in this) if (this.hasOwnProperty(prop)) return false;
-      return true;
-    };
-  }
-
   initDirectory() {
     new Structure(this.path).createStructure();
   }
@@ -151,6 +160,7 @@ class Cocasus {
       );
     }
     this.setupLogger();
+
     const callbackRun = () => {
       if (this.options.listening.verbose) {
         const message = this.options.listening.message
@@ -160,7 +170,6 @@ class Cocasus {
       }
     };
     if (!host) {
-      console.log('heeheh');
       host = 'localhost';
       this.server = this.app.listen(port, callbackRun);
     } else {

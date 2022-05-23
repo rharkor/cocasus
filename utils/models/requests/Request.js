@@ -19,7 +19,7 @@ class Request {
   static async validate(req, rules) {
     await checkSchema(rules).run(req);
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    if (!Object.keys(errors).length === 0) {
       return errors.array();
     }
     return false;

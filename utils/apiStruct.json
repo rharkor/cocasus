@@ -65,6 +65,17 @@
             }
           }
         }
+      },
+      "db": {
+        "name": "db",
+        "type": "directory",
+        "childrens": {
+          "BaseModel.js": {
+            "name": "BaseModel.js",
+            "type": "file",
+            "path": "utils/models/database/BaseModel.js"
+          }
+        }
       }
     }
   },
@@ -91,6 +102,17 @@
       },
       "models": {
         "name": "models",
+        "type": "directory",
+        "childrens": {
+          "UserModel.js": {
+            "name": "UserModel.js",
+            "type": "file",
+            "path": "utils/models/database/UserModel.js"
+          }
+        }
+      },
+      "seeders": {
+        "name": "seeders",
         "type": "directory",
         "childrens": {}
       }

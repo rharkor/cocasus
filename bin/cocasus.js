@@ -5,6 +5,9 @@ const { hideBin } = require('yargs/helpers');
 const fs = require('fs');
 const Structure = require('../utils/Structure');
 const inquirer = require('inquirer');
+require('dotenv').config();
+
+const Database = require('../utils/Database');
 
 class Cli {
   constructor() {
@@ -105,18 +108,70 @@ class Cli {
           this.getRoutes();
         }
       )
+      .command(
+        'db:migrate:up',
+        'Run the migrations',
+        (yargs) => {},
+        async () => {
+          this.createDB();
+          this.db.migrate();
+        }
+      )
+      .command(
+        'db:migrate:down',
+        'Rollback the migrations',
+        (yargs) => {},
+        async () => {
+          this.createDB();
+          this.db.rollback();
+        }
+      )
+      .command(
+        'db:make migration [name]',
+        'Create a new migration',
+        (yargs) => {},
+        async (argv) => {
+          this.createDB();
+          this.db.makeMigration(argv.name, argv.table, this.path);
+        }
+      )
+      .command('*', '', (yargs) => {
+        console.log('Command not found');
+        yargs.showHelp();
+      })
+      .showHelpOnFail(true)
+      .demandCommand(1, '')
       .parse();
   }
 
-  askForName() {
+  createDB() {
+    const app = this.getApp();
+    this.dbOptions = {
+      database: process.env.DB_DATABASE || 'cocasus',
+      username: process.env.DB_USER || 'my-user',
+      password: process.env.DB_PASSWORD || 'my-password',
+      host: process.env.DB_HOST || 'localhost',
+      dialect: process.env.DB_DIALECT || 'mysql',
+      models: `${app.path}/${app.options.db.models}`,
+      modelsRel: app.options.db.models,
+      migrations: `${app.path}/${app.options.db.migrations}`,
+      migrationsRel: app.options.db.migrations,
+    };
+    this.db = new Database(this.dbOptions);
+  }
+
+  askForName(
+    def = 'cocasus-app',
+    message = 'What is the name of your project?'
+  ) {
     return new Promise((resolve, reject) => {
       inquirer
         .prompt([
           {
             type: 'input',
             name: 'name',
-            message: 'What is the name of your project?',
-            default: 'cocasus-app',
+            message: message,
+            default: def ? def : null,
           },
         ])
         .then((answers) => {
