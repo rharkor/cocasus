@@ -5,23 +5,25 @@ const { dirname } = require('path');
 require('dotenv').config();
 
 const Logger = require('./middlewares/Logger.middleware.js');
-const Structure = require('./utils/structure.js');
+const Structure = require('./utils/Structure.js');
+const Database = require('./utils/Database.js');
 
 class Cocasus {
-  constructor(app = null, options = {}, debug = true) {
+  constructor(app = null, options = {}, debug = process.env.DEBUG || true) {
     if (app) {
       this.app = app;
     } else {
       this.app = express();
     }
+
     this.path = dirname(require.main.filename);
     this.routes = [];
 
     this.options = {
       listening: {
-        message: 'Listening on http://$host:$port',
+        message: 'App listening on http://$host:$port',
         verbose: true,
-        host: process.env.HOST || 'localhost',
+        host: process.env.HOST || null,
         port: process.env.PORT || 8080,
       },
       init: {
@@ -36,7 +38,7 @@ class Cocasus {
           path: './log',
           fileName: 'error.log',
           message: 'Something went wrong..',
-          exceptionCode: 500,
+          exceptionCode: process.env.EXCEPTION_CODE || 500,
         },
         access: {
           path: './log',
@@ -47,10 +49,23 @@ class Cocasus {
       },
       sass: {
         src: `${this.path}/resources/static/styles`,
-        dest: `${this.path}/resources/public`,
-        outputStyle: 'compressed',
+        dest: `${this.path}/resources/static/styles`,
+        outputStyle: debug ? 'nested' : 'compressed',
         type: 'sass',
       },
+      db: {
+        database: process.env.DB_DATABASE || 'my-database',
+        username: process.env.DB_USER || 'my-user',
+        password: process.env.DB_PASSWORD || 'my-password',
+        host: process.env.DB_HOST || 'localhost',
+        dialect: process.env.DB_DIALECT || 'mysql',
+        modelsRel: 'database/models',
+        models: `${this.path}/database/models`,
+        migrationsRel: 'database/migrations',
+        migrations: `${this.path}/database/migrations`,
+        enabled: true, // Set it to false if you don't want to use the database
+      },
+      models: [],
       debug,
     };
     // Filter only the options that are not null
@@ -60,21 +75,28 @@ class Cocasus {
   }
 
   init(options = {}, customApp = null) {
-    this.#plug();
-
     if (customApp) {
       this.app = customApp;
     }
 
+    // Init the db connection
+    if (this.options.db.enabled) {
+      this.db = new Database(this.options.db, null, this.options.debug);
+      this.db.referenceAllModels();
+      // Simplify the access to the models
+      this.models = this.db.models;
+    }
+
     this.app.set('views', this.options.init.views);
     if (this.options.init.viewEngine) {
-      console.log('Assigning view engine', this.options.init.viewEngine);
       if (this.options.init.viewEngine === 'nunjucks') {
         const nunjucks = require('nunjucks');
         nunjucks.configure(this.options.init.views, {
           autoescape: true,
           express: this.app,
         });
+        this.app.engine('jinja', nunjucks.render);
+        this.app.set('view engine', 'jinja');
       }
     }
     this.app.use(
@@ -84,17 +106,22 @@ class Cocasus {
         debug: this.options.debug,
         outputStyle: this.options.sass.outputStyle,
         indentedSyntax: this.options.sass.type === 'sass',
+        prefix: '/styles',
       })
     );
 
-    this.app.use(cors());
-    this.app.use(express.json());
+    if (this.options.init.cors) {
+      this.app.use(cors());
+    }
+    if (this.options.init.json) {
+      this.app.use(express.json());
+    }
 
     // Setup the file directory
     this.app.use(express.static(this.options.init.static));
 
     this.options = this.assign(options, this.options);
-    if (this.options.logger.enabled) {
+    if (this.options.logger.enabled && !this.options.logger.object) {
       this.options.logger.object = new Logger(
         this.options.logger,
         this.options.debug
@@ -120,13 +147,6 @@ class Cocasus {
     return result;
   }
 
-  #plug() {
-    Object.prototype.isEmpty = function () {
-      for (var prop in this) if (this.hasOwnProperty(prop)) return false;
-      return true;
-    };
-  }
-
   initDirectory() {
     new Structure(this.path).createStructure();
   }
@@ -150,14 +170,21 @@ class Cocasus {
       );
     }
     this.setupLogger();
-    this.server = this.app.listen(port, host, () => {
+
+    const callbackRun = () => {
       if (this.options.listening.verbose) {
         const message = this.options.listening.message
           .replace('$host', host)
           .replace('$port', port);
         console.log(message);
       }
-    });
+    };
+    if (!host) {
+      host = 'localhost';
+      this.server = this.app.listen(port, callbackRun);
+    } else {
+      this.server = this.app.listen(port, host, callbackRun);
+    }
   }
 
   register(method, path, callback) {

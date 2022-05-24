@@ -5,6 +5,9 @@ const { hideBin } = require('yargs/helpers');
 const fs = require('fs');
 const Structure = require('../utils/Structure');
 const inquirer = require('inquirer');
+require('dotenv').config();
+
+const Database = require('../utils/Database');
 
 class Cli {
   constructor() {
@@ -46,42 +49,55 @@ class Cli {
               alias: 't',
               type: 'string',
               default: 'web',
+            })
+            .positional('name', {
+              describe: 'The name of the project',
+              alias: 'n',
+              type: 'string',
+            })
+            .positional('root', {
+              describe: 'The root of the project',
+              alias: 'r',
+              type: 'string',
+              default: '.',
+            })
+            .positional('deps', {
+              describe:
+                'Install automatically or not the dependencies of the project',
+              alias: 'd',
+              type: 'boolean',
+              default: true,
             });
         },
-        (argv) => {
+        async (argv) => {
           // ask for name
-          inquirer
-            .prompt([
+          const name = argv.name || (await this.askForName());
+          if (argv.root !== '.') {
+            this.structure.path = `${this.path}/${argv.root}`;
+            // Create the folder structure
+            fs.mkdirSync(this.structure.path, { recursive: true });
+          }
+          if (argv.force) {
+            this.structure.createStructure(
+              null,
+              true,
               {
-                type: 'input',
-                name: 'name',
-                message: 'What is the name of your project?',
-                default: 'cocasus-app',
+                name,
               },
-            ])
-            .then((answers) => {
-              const name = answers.name;
-              if (argv.force) {
-                this.structure.createStructure(
-                  null,
-                  true,
-                  {
-                    name,
-                  },
-                  argv.type
-                );
-              } else {
-                this.structure.createStructure(
-                  null,
-                  false,
-                  {
-                    name,
-                  },
-                  argv.type
-                );
-              }
-              console.log('Initialized the project structure');
-            });
+              argv.type,
+              argv.deps
+            );
+          } else {
+            this.structure.createStructure(
+              null,
+              false,
+              {
+                name,
+              },
+              argv.type,
+              argv.deps
+            );
+          }
         }
       )
       .command(
@@ -92,7 +108,83 @@ class Cli {
           this.getRoutes();
         }
       )
+      .command(
+        'db:migrate:up',
+        'Run the migrations',
+        (yargs) => {},
+        async () => {
+          this.createDB();
+          await this.db.migrate();
+          this.db.close();
+        }
+      )
+      .command(
+        'db:migrate:down',
+        'Rollback the migrations',
+        (yargs) => {},
+        async () => {
+          this.createDB();
+          await this.db.rollback();
+          this.db.close();
+        }
+      )
+      .command(
+        'make:migration [name]',
+        'Create a new migration',
+        (yargs) => {},
+        async (argv) => {
+          const name =
+            argv.name ||
+            (await this.askForName(
+              'create_table',
+              'What is the name of the migration?'
+            ));
+          this.createDB();
+          this.db.makeMigration(name, this.path);
+          this.db.close();
+        }
+      )
+      .showHelpOnFail(true)
       .parse();
+  }
+
+  createDB() {
+    const app = this.getApp();
+    this.dbOptions = {
+      database: process.env.DB_DATABASE || 'cocasus',
+      username: process.env.DB_USER || 'my-user',
+      password: process.env.DB_PASSWORD || 'my-password',
+      host: process.env.DB_HOST || 'localhost',
+      dialect: process.env.DB_DIALECT || 'mysql',
+      models: `${app.path}/${app.options.db.modelsRel}`,
+      modelsRel: app.options.db.modelsRel,
+      migrations: `${app.path}/${app.options.db.migrationsRel}`,
+      migrationsRel: app.options.db.migrationsRel,
+    };
+    this.db = new Database(this.dbOptions, this.path);
+  }
+
+  askForName(
+    def = 'cocasus-app',
+    message = 'What is the name of your project?'
+  ) {
+    return new Promise((resolve, reject) => {
+      inquirer
+        .prompt([
+          {
+            type: 'input',
+            name: 'name',
+            message: message,
+            default: def ? def : null,
+          },
+        ])
+        .then((answers) => {
+          resolve(answers.name);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
   }
 
   getApp() {

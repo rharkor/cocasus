@@ -19,6 +19,16 @@
     "type": "file",
     "path": "utils/models/basic/app.js"
   },
+  "Dockerfile": {
+    "name": "Dockerfile",
+    "type": "file",
+    "path": "utils/models/basic/Dockerfile"
+  },
+  ".env.example": {
+    "name": ".env.example",
+    "type": "file",
+    "path": "utils/models/basic/.env.example"
+  },
   ".prettierrc.json": {
     "name": ".prettierrc.json",
     "type": "file",
@@ -55,6 +65,17 @@
             }
           }
         }
+      },
+      "db": {
+        "name": "db",
+        "type": "directory",
+        "childrens": {
+          "BaseModel.js": {
+            "name": "BaseModel.js",
+            "type": "file",
+            "path": "utils/models/database/BaseModel.js"
+          }
+        }
       }
     }
   },
@@ -82,6 +103,17 @@
       "models": {
         "name": "models",
         "type": "directory",
+        "childrens": {
+          "UserModel.js": {
+            "name": "UserModel.js",
+            "type": "file",
+            "path": "utils/models/database/UserModel.js"
+          }
+        }
+      },
+      "seeders": {
+        "name": "seeders",
+        "type": "directory",
         "childrens": {}
       }
     }
@@ -90,11 +122,6 @@
     "name": "resources",
     "type": "directory",
     "childrens": {
-      "public": {
-        "name": "public",
-        "type": "directory",
-        "childrens": {}
-      },
       "views": {
         "name": "views",
         "type": "directory",
@@ -102,7 +129,7 @@
           "base.jinja": {
             "name": "base.jinja",
             "type": "file",
-            "path": "utils/models/view/base.jinja",
+            "path": "utils/models/views/base.jinja",
             "replace": { "$name": "$name" }
           }
         }
@@ -135,7 +162,13 @@
           "javascripts": {
             "name": "javascripts",
             "type": "directory",
-            "childrens": {}
+            "childrens": {
+              "index.js": {
+                "name": "index.js",
+                "type": "file",
+                "path": "utils/models/javascripts/index.js"
+              }
+            }
           }
         }
       }

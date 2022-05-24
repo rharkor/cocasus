@@ -17,15 +17,42 @@ class Structure {
     this.loader = ['|', '/', '-', '\\'];
   }
 
-  createStructure(only = null, force = false, options = {}, type = 'web') {
+  createStructure(
+    only = null,
+    force = false,
+    options = {},
+    type = 'web',
+    installDeps = true
+  ) {
     if (type === 'web') {
-      this.#create(this.structure, this.path, only, force, options);
+      this.#create(
+        this.structure,
+        this.path,
+        only,
+        force,
+        options,
+        installDeps
+      );
     } else if (type === 'api') {
-      this.#create(this.apiStructure, this.path, only, force, options);
+      this.#create(
+        this.apiStructure,
+        this.path,
+        only,
+        force,
+        options,
+        installDeps
+      );
     }
   }
 
-  #create(object, path = this.path, only = null, force = false, options = {}) {
+  #create(
+    object,
+    path = this.path,
+    only = null,
+    force = false,
+    options = {},
+    installDeps
+  ) {
     // Create the structure
     Object.keys(object).forEach((key) => {
       const value = object[key];
@@ -70,7 +97,10 @@ class Structure {
           console.log(`Creating ${value.name}`);
           fs.writeFileSync(`${path}/${value.name}`, content, 'utf8');
         }
-      } else if (value.type === 'command') {
+      } else if (
+        value.type === 'command' &&
+        !(!installDeps && value.name !== 'npm install')
+      ) {
         let i = 0;
         const ui = new inquirer.ui.BottomBar({ bottomBar: this.loader[0] });
         const installInterval = setInterval(() => {

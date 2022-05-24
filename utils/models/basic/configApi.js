@@ -4,16 +4,12 @@ const HomeController = require('./controllers/HomeController');
 
 const coca = new cocasus();
 
-coca.register('get', '/', (req, res) => {
-  res.send('Hello World!');
-});
+coca.register('get', '/', HomeController.call('index'));
 
 coca.register('get', '/users', (req, res) => {
   coca.models.user.findAll().then((users) => {
     res.send(users);
   });
 });
-
-coca.register('get', '/home', HomeController.call('index'));
 
 module.exports = coca;
