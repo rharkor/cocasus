@@ -114,7 +114,8 @@ class Cli {
         (yargs) => {},
         async () => {
           this.createDB();
-          this.db.migrate();
+          await this.db.migrate();
+          this.db.close();
         }
       )
       .command(
@@ -123,24 +124,27 @@ class Cli {
         (yargs) => {},
         async () => {
           this.createDB();
-          this.db.rollback();
+          await this.db.rollback();
+          this.db.close();
         }
       )
       .command(
-        'db:make migration [name]',
+        'make:migration [name]',
         'Create a new migration',
         (yargs) => {},
         async (argv) => {
+          const name =
+            argv.name ||
+            (await this.askForName(
+              'create_table',
+              'What is the name of the migration?'
+            ));
           this.createDB();
-          this.db.makeMigration(argv.name, argv.table, this.path);
+          this.db.makeMigration(name, this.path);
+          this.db.close();
         }
       )
-      .command('*', '', (yargs) => {
-        console.log('Command not found');
-        yargs.showHelp();
-      })
       .showHelpOnFail(true)
-      .demandCommand(1, '')
       .parse();
   }
 
@@ -152,12 +156,12 @@ class Cli {
       password: process.env.DB_PASSWORD || 'my-password',
       host: process.env.DB_HOST || 'localhost',
       dialect: process.env.DB_DIALECT || 'mysql',
-      models: `${app.path}/${app.options.db.models}`,
-      modelsRel: app.options.db.models,
-      migrations: `${app.path}/${app.options.db.migrations}`,
-      migrationsRel: app.options.db.migrations,
+      models: `${app.path}/${app.options.db.modelsRel}`,
+      modelsRel: app.options.db.modelsRel,
+      migrations: `${app.path}/${app.options.db.migrationsRel}`,
+      migrationsRel: app.options.db.migrationsRel,
     };
-    this.db = new Database(this.dbOptions);
+    this.db = new Database(this.dbOptions, this.path);
   }
 
   askForName(

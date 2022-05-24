@@ -1,6 +1,6 @@
 {
   "name": "cocasus",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "main": "index.js",
   "preferGlobal": true,
   "bin": {
@@ -9,13 +9,29 @@
   "scripts": {
     "start": "node index.js"
   },
-  "author": "HUORT Louis",
-  "license": "ISC",
-  "description": "",
+  "author": {
+    "name": "HUORT Louis",
+    "email": "louis@huort.com",
+    "url": "https://huort.com/louis"
+  },
+  "bugs": "https://github.com/rharkor/cocasus/issues",
+  "homepage": "https://github.com/rharkor/cocasus",
   "keywords": [
+    "cocasus",
+    "framework",
     "cli",
-    "framework"
+    "express",
+    "sequelize",
+    "jinja",
+    "web",
+    "sass"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rharkor/cocasus"
+  },
+  "license": "ISC",
+  "description": "Javascript framework for web development",
   "files": [
     "bin/",
     "middlewares/",
@@ -42,5 +58,10 @@
     "tedious": "^14.5.0",
     "umzug": "^3.1.1",
     "yargs": "^17.5.1"
-  }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
 }

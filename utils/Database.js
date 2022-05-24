@@ -3,7 +3,7 @@ const { Umzug, SequelizeStorage } = require('umzug');
 const fs = require('fs');
 
 class Database {
-  constructor(config) {
+  constructor(config, root, debug = process.env.DEBUG || true) {
     this.sequelize = new Sequelize(
       config.database,
       config.username,
@@ -11,13 +11,14 @@ class Database {
       {
         host: config.host,
         dialect: config.dialect,
-        logQueryParameters: true,
-        benchmark: true,
+        logQueryParameters: debug,
+        benchmark: debug,
       }
     );
+    this.root = root;
 
     this.umzug = new Umzug({
-      migrations: { glob: `${config.migrations}/*.js` },
+      migrations: { glob: `${this.root}/${config.migrationsRel}/*.js` },
       context: this.sequelize.getQueryInterface(),
       storage: new SequelizeStorage({ sequelize: this.sequelize }),
       logger: console,
@@ -51,6 +52,10 @@ class Database {
     }
   }
 
+  close() {
+    this.sequelize.close();
+  }
+
   referenceAllModels() {
     try {
       // read all files in models directory
@@ -71,43 +76,14 @@ class Database {
     await this.umzug.down();
   }
 
-  makeMigration(name, table, root) {
+  makeMigration(name, root) {
     // Get the model path
-    if (table) {
-      // const modelPath = `${this.modelsRelPath}/${table}.js`;
-      // if (!fs.existsSync(modelPath)) {
-      //   console.error(`Model ${table} not found`);
-      //   return;
-      // }
-      // console.log(`Find the file ${modelPath}`);
-      // // Get the content of the file
-      // const content = fs.readFileSync(modelPath, 'utf8');
-      // const model = RegExp(/.define\((.*)\);.*};/, 'gs').exec(content)[1];
-      // const tableName = model.substring(0, model.indexOf(','));
-      // console.log(tableName);
-      // let builder = fs.readFileSync(
-      //   `${__dirname}/../utils/models/database/migrationBuilder.js`,
-      //   'utf8'
-      // );
-      // builder = builder.replace('$content', model);
-      // builder = builder.replace('$name', tableName);
-      // const lastMigrationNumber = this.getLastMigrationNumber(root);
-      // fs.writeFileSync(
-      //   `${root}/${this.migrationsRelPath}/${
-      //     lastMigrationNumber + 1
-      //   }_${name}.js`,
-      //   builder
-      // );
-    } else {
-      const lastMigrationNumber = this.getLastMigrationNumber(root);
-      // Create the migration boilerplate
-      fs.writeFileSync(
-        `${root}/${this.migrationsRelPath}/${
-          lastMigrationNumber + 1
-        }_${name}.js`,
-        fs.readFileSync(`${__dirname}/../utils/models/database/migration.js`)
-      );
-    }
+    const lastMigrationNumber = this.getLastMigrationNumber(root);
+    // Create the migration boilerplate
+    fs.writeFileSync(
+      `${root}/${this.migrationsRelPath}/${lastMigrationNumber + 1}_${name}.js`,
+      fs.readFileSync(`${__dirname}/../utils/models/database/migration.js`)
+    );
   }
 
   getLastMigrationNumber(root) {
