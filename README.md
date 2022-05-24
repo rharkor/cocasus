@@ -114,7 +114,9 @@ const options = {
     models: `${absPath}/database/models`, // Path to the models folder
     migrationsRel: 'database/migrations', // Relative path to the migrations folder
     migrations: `${absPath}/database/migrations`, // Path to the migrations folder
+    enabled: true, // Set it to false if you don't want to use the database
   },
+  models: [], // List of models (it's automatically added so don't add it manually)
   debug, // If true, the framework will log all the information
 };
 

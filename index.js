@@ -54,7 +54,7 @@ class Cocasus {
         type: 'sass',
       },
       db: {
-        database: process.env.DB_DATABASE || 'cocasus',
+        database: process.env.DB_DATABASE || 'my-database',
         username: process.env.DB_USER || 'my-user',
         password: process.env.DB_PASSWORD || 'my-password',
         host: process.env.DB_HOST || 'localhost',
@@ -63,7 +63,9 @@ class Cocasus {
         models: `${this.path}/database/models`,
         migrationsRel: 'database/migrations',
         migrations: `${this.path}/database/migrations`,
+        enabled: true, // Set it to false if you don't want to use the database
       },
+      models: [],
       debug,
     };
     // Filter only the options that are not null
@@ -78,10 +80,12 @@ class Cocasus {
     }
 
     // Init the db connection
-    this.db = new Database(this.options.db, null, this.options.debug);
-    this.db.referenceAllModels();
-    // Simplify the access to the models
-    this.models = this.db.models;
+    if (this.options.db.enabled) {
+      this.db = new Database(this.options.db, null, this.options.debug);
+      this.db.referenceAllModels();
+      // Simplify the access to the models
+      this.models = this.db.models;
+    }
 
     this.app.set('views', this.options.init.views);
     if (this.options.init.viewEngine) {
