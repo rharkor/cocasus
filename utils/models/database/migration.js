@@ -1,14 +1,23 @@
 const { DataTypes } = require('sequelize');
 const BaseModel = require('../../vendor/db/BaseModel');
 
+const name = 'table-name';
+
+const content = {
+  // Add your own fields here
+  // ...
+};
+
+/**
+ * Auto generated model
+ * Complete the fields above
+ */
 async function up({ context: queryInterface }) {
   await queryInterface.createTable(
-    'table-name',
+    name,
     {
       ...BaseModel.content,
-
-      // Add your own fields here
-      // ...
+      ...content,
     },
     {
       ...BaseModel.options,
@@ -17,7 +26,7 @@ async function up({ context: queryInterface }) {
 }
 
 async function down({ context: queryInterface }) {
-  await queryInterface.dropTable('table-name');
+  await queryInterface.dropTable(name);
 }
 
 module.exports = { up, down };

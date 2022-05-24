@@ -9,7 +9,7 @@ coca.register('get', '/', (req, res) => {
 });
 
 coca.register('get', '/users', (req, res) => {
-  coca.models.UserModel.findAll().then((users) => {
+  coca.models.user.findAll().then((users) => {
     res.send(users);
   });
 });
