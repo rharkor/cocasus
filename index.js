@@ -2,35 +2,35 @@ const express = require('express');
 const cors = require('cors');
 const sassMiddleware = require('node-sass-middleware');
 const { dirname } = require('path');
-require('dotenv').config();
+const path = require('path');
 
-const Logger = require('./middlewares/Logger.middleware.js');
-const Structure = require('./utils/Structure.js');
-const Database = require('./utils/Database.js');
+const utils = require('./utils/method');
+const Logger = require('./framework/middlewares/Logger.middleware.js');
+const Database = require('./framework/database/Database.js');
 
 class Cocasus {
-  constructor(app = null, options = {}, debug = process.env.DEBUG || true) {
+  constructor(options = {}, app = null, debug = utils.getEnv('DEBUG', true)) {
     if (app) {
       this.app = app;
     } else {
       this.app = express();
     }
 
-    this.path = dirname(require.main.filename);
+    this.path = process.cwd();
     this.routes = [];
 
     this.options = {
       listening: {
         message: 'App listening on http://$host:$port',
         verbose: true,
-        host: process.env.HOST || null,
-        port: process.env.PORT || 8080,
+        host: utils.getEnv('HOST', null),
+        port: utils.getEnv('PORT', 8080),
       },
       init: {
         cors: true,
         json: true,
-        static: `${this.path}/resources/static`,
-        views: `${this.path}/resources/views`,
+        static: 'resources/static',
+        views: 'resources/views',
         viewEngine: 'nunjucks',
       },
       logger: {
@@ -38,7 +38,7 @@ class Cocasus {
           path: './log',
           fileName: 'error.log',
           message: 'Something went wrong..',
-          exceptionCode: process.env.EXCEPTION_CODE || 500,
+          exceptionCode: utils.getEnv('EXCEPTION_CODE', 500),
         },
         access: {
           path: './log',
@@ -48,28 +48,26 @@ class Cocasus {
         enabled: true,
       },
       sass: {
-        src: `${this.path}/resources/static/styles`,
-        dest: `${this.path}/resources/static/styles`,
+        src: 'resources/static/styles',
+        dest: 'resources/static/styles',
         outputStyle: debug ? 'nested' : 'compressed',
         type: 'sass',
       },
       db: {
-        database: process.env.DB_DATABASE || 'my-database',
-        username: process.env.DB_USER || 'my-user',
-        password: process.env.DB_PASSWORD || 'my-password',
-        host: process.env.DB_HOST || 'localhost',
-        dialect: process.env.DB_DIALECT || 'mysql',
-        modelsRel: 'database/models',
-        models: `${this.path}/database/models`,
-        migrationsRel: 'database/migrations',
-        migrations: `${this.path}/database/migrations`,
-        enabled: true, // Set it to false if you don't want to use the database
+        database: utils.getEnv('DB_DATABASE', 'my-database'),
+        username: utils.getEnv('DB_USER', 'my-user'),
+        password: utils.getEnv('DB_PASSWORD', 'my-password'),
+        host: utils.getEnv('DB_HOST', 'localhost'),
+        dialect: utils.getEnv('DB_DIALECT', 'mysql'),
+        models: 'database/models',
+        migrations: 'database/migrations',
+        enabled: true, // Set it to false if you don't want to use a database
       },
       models: [],
       debug,
     };
     // Filter only the options that are not null
-    this.options = this.assign(options, this.options);
+    this.options = utils.assign(options, this.options);
 
     this.init();
   }
@@ -79,15 +77,27 @@ class Cocasus {
       this.app = customApp;
     }
 
+    this.options = utils.assign(options, this.options);
+    if (this.options.logger.enabled && !this.options.logger.object) {
+      this.options.logger.object = new Logger(
+        this.options.logger,
+        this.options.debug
+      );
+    }
+
     // Init the db connection
     if (this.options.db.enabled) {
-      this.db = new Database(this.options.db, null, this.options.debug);
+      this.db = new Database(
+        this.options.db,
+        this.options.debug,
+        this.path,
+        this.errorHandler.bind(this)
+      );
       this.db.referenceAllModels();
       // Simplify the access to the models
       this.models = this.db.models;
     }
-
-    this.app.set('views', this.options.init.views);
+    this.app.set('views', path.join(this.path, this.options.init.views));
     if (this.options.init.viewEngine) {
       if (this.options.init.viewEngine === 'nunjucks') {
         const nunjucks = require('nunjucks');
@@ -101,8 +111,8 @@ class Cocasus {
     }
     this.app.use(
       sassMiddleware({
-        src: this.options.sass.src,
-        dest: this.options.sass.dest,
+        src: path.join(this.path, this.options.sass.src),
+        dest: path.join(this.path, this.options.sass.dest),
         debug: this.options.debug,
         outputStyle: this.options.sass.outputStyle,
         indentedSyntax: this.options.sass.type === 'sass',
@@ -118,37 +128,9 @@ class Cocasus {
     }
 
     // Setup the file directory
-    this.app.use(express.static(this.options.init.static));
-
-    this.options = this.assign(options, this.options);
-    if (this.options.logger.enabled && !this.options.logger.object) {
-      this.options.logger.object = new Logger(
-        this.options.logger,
-        this.options.debug
-      );
-    }
-  }
-
-  assign(target, source) {
-    const keys = Object.keys(source);
-    const result = {};
-    for (let i = 0; i < keys.length; i += 1) {
-      const key = keys[i];
-      if (key in target) {
-        if (typeof target[key] === 'object') {
-          result[key] = this.assign(target[key], source[key]);
-        } else {
-          result[key] = target[key];
-        }
-      } else {
-        result[key] = source[key];
-      }
-    }
-    return result;
-  }
-
-  initDirectory() {
-    new Structure(this.path).createStructure();
+    this.app.use(
+      express.static(path.join(this.path, this.options.init.static))
+    );
   }
 
   // It's really important to call this method after the routes
@@ -188,12 +170,37 @@ class Cocasus {
   }
 
   register(method, path, callback) {
-    this.app[method](path, callback);
+    const callbackGuarded = (req, res, next) => {
+      try {
+        callback(req, res, next);
+      } catch (e) {
+        this.errorHandler(e, req, res, next);
+      }
+    };
+    this.app[method](path, callbackGuarded);
     this.routes.push({ method, path });
   }
 
   getRoutes() {
     return this.routes;
+  }
+
+  errorHandler(e, req, res, next) {
+    if (this.options.debug) {
+      console.error(e);
+      this.options.logger.object.getSourceLoggers().error.error(e.message);
+      if (res) {
+        res.status(this.options.logger.exceptionCode).send(e);
+      }
+    } else {
+      console.error(e);
+      this.options.logger.object.getSourceLoggers().error.error(e.message);
+      if (res) {
+        res
+          .status(this.options.logger.exceptionCode)
+          .send('Something went wrong');
+      }
+    }
   }
 }
 

@@ -6,6 +6,7 @@ class Logger {
     this.options = options;
     this.debug = debug;
     this.loggers = {};
+    this.loggersSource = {};
   }
 
   createFolder(path) {
@@ -53,6 +54,8 @@ class Logger {
     };
     this.loggers.error = error;
     this.loggers.access = access;
+    this.loggersSource.error = errorLogger;
+    this.loggersSource.access = accessLogger;
   }
 
   getLoggers() {
@@ -60,6 +63,13 @@ class Logger {
       this.createLoggers();
     }
     return Object.values(this.loggers);
+  }
+
+  getSourceLoggers() {
+    if (Object.keys(this.loggersSource).length === 0) {
+      this.createLoggers();
+    }
+    return this.loggersSource;
   }
 }
 
