@@ -2,7 +2,7 @@
   "package.json": {
     "name": "package.json",
     "type": "file",
-    "path": "utils/models/basic/package.json",
+    "path": "models/basic/package.json",
     "replace": { "$name": "$name" }
   },
   "install": {
@@ -12,27 +12,27 @@
   "config.js": {
     "name": "config.js",
     "type": "file",
-    "path": "utils/models/basic/configApi.js"
+    "path": "models/basic/configApi.js"
   },
   "app.js": {
     "name": "app.js",
     "type": "file",
-    "path": "utils/models/basic/app.js"
+    "path": "models/basic/app.js"
   },
   "Dockerfile": {
     "name": "Dockerfile",
     "type": "file",
-    "path": "utils/models/basic/DockerfileApi"
+    "path": "models/basic/DockerfileApi"
   },
   ".env.example": {
     "name": ".env.example",
     "type": "file",
-    "path": "utils/models/basic/.envApi.example"
+    "path": "models/basic/.envApi.example"
   },
   ".prettierrc.json": {
     "name": ".prettierrc.json",
     "type": "file",
-    "path": "utils/models/basic/.prettierrc.json"
+    "path": "models/basic/.prettierrc.json"
   },
   "vendor": {
     "name": "vendor",
@@ -49,7 +49,7 @@
               "Controller.js": {
                 "name": "Controller.js",
                 "type": "file",
-                "path": "utils/models/controllers/Controller.js"
+                "path": "models/controllers/Controller.js"
               }
             }
           },
@@ -60,7 +60,7 @@
               "Request.js": {
                 "name": "Request.js",
                 "type": "file",
-                "path": "utils/models/requests/Request.js"
+                "path": "models/requests/Request.js"
               }
             }
           }
@@ -70,10 +70,26 @@
         "name": "db",
         "type": "directory",
         "childrens": {
-          "BaseModel.js": {
-            "name": "BaseModel.js",
+          "Model.js": {
+            "name": "Model.js",
             "type": "file",
-            "path": "utils/models/database/BaseModel.js"
+            "path": "database/Model.js"
+          },
+          "Migration.js": {
+            "name": "Migration.js",
+            "type": "file",
+            "path": "database/Migration.js"
+          }
+        }
+      },
+      "utils": {
+        "name": "utils",
+        "type": "directory",
+        "childrens": {
+          "method.js": {
+            "name": "method.js",
+            "type": "file",
+            "path": "../../utils/method.js"
           }
         }
       }
@@ -86,7 +102,7 @@
       "HomeController.js": {
         "name": "HomeController.js",
         "type": "file",
-        "path": "utils/models/controllers/ApiController.js",
+        "path": "models/controllers/ApiController.js",
         "replace": { "$name": "HomeController" }
       }
     }
@@ -98,7 +114,13 @@
       "migrations": {
         "name": "migrations",
         "type": "directory",
-        "childrens": {}
+        "childrens": {
+          "1_create_table_user.js": {
+            "name": "1_create_table_user.js",
+            "type": "file",
+            "path": "database/1_create_table_user.js"
+          }
+        }
       },
       "models": {
         "name": "models",
@@ -107,7 +129,7 @@
           "UserModel.js": {
             "name": "UserModel.js",
             "type": "file",
-            "path": "utils/models/database/UserModel.js"
+            "path": "models/database/UserModel.js"
           }
         }
       },

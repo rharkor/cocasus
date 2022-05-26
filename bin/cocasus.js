@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 
-const yargs = require('yargs/yargs');
-const { hideBin } = require('yargs/helpers');
 const fs = require('fs');
-const Structure = require('../utils/Structure');
-const inquirer = require('inquirer');
-require('dotenv').config();
+const path = require('path');
 
-const Database = require('../utils/Database');
+const utils = require('../utils/method');
+
+const cliInterface = require('./cli/interface/interface');
+const Database = require('./cli/database/Database');
+const Structure = require('./cli/structure/Structure');
 
 class Cli {
   constructor() {
-    this.argv = yargs(hideBin(process.argv));
     this.path = process.cwd();
 
     this.structure = new Structure(this.path);
@@ -20,171 +19,14 @@ class Cli {
   }
 
   createInterface() {
-    yargs(hideBin(process.argv))
-      .command(
-        'make:controller [name]',
-        'Create a new controller',
-        (yargs) => {
-          return yargs.positional('name', {
-            describe: 'name of the controller',
-            type: 'string',
-          });
-        },
-        (argv) => {
-          this.makeController(argv);
-        }
-      )
-      .command(
-        'init',
-        'Initialize the project structure',
-        (yargs) => {
-          return yargs
-            .positional('force', {
-              describe: 'force the initialization (overwrite existing files)',
-              alias: 'f',
-              type: 'boolean',
-            })
-            .positional('type', {
-              describe: 'The type of utilisation [web|api]',
-              alias: 't',
-              type: 'string',
-              default: 'web',
-            })
-            .positional('name', {
-              describe: 'The name of the project',
-              alias: 'n',
-              type: 'string',
-            })
-            .positional('root', {
-              describe: 'The root of the project',
-              alias: 'r',
-              type: 'string',
-              default: '.',
-            })
-            .positional('deps', {
-              describe:
-                'Install automatically or not the dependencies of the project',
-              alias: 'd',
-              type: 'boolean',
-              default: true,
-            });
-        },
-        async (argv) => {
-          // ask for name
-          const name = argv.name || (await this.askForName());
-          if (argv.root !== '.') {
-            this.structure.path = `${this.path}/${argv.root}`;
-            // Create the folder structure
-            fs.mkdirSync(this.structure.path, { recursive: true });
-          }
-          if (argv.force) {
-            this.structure.createStructure(
-              null,
-              true,
-              {
-                name,
-              },
-              argv.type,
-              argv.deps
-            );
-          } else {
-            this.structure.createStructure(
-              null,
-              false,
-              {
-                name,
-              },
-              argv.type,
-              argv.deps
-            );
-          }
-        }
-      )
-      .command(
-        'routes',
-        'Get the routes of the app',
-        (yargs) => {},
-        () => {
-          this.getRoutes();
-        }
-      )
-      .command(
-        'db:migrate:up',
-        'Run the migrations',
-        (yargs) => {},
-        async () => {
-          this.createDB();
-          await this.db.migrate();
-          this.db.close();
-        }
-      )
-      .command(
-        'db:migrate:down',
-        'Rollback the migrations',
-        (yargs) => {},
-        async () => {
-          this.createDB();
-          await this.db.rollback();
-          this.db.close();
-        }
-      )
-      .command(
-        'make:migration [name]',
-        'Create a new migration',
-        (yargs) => {},
-        async (argv) => {
-          const name =
-            argv.name ||
-            (await this.askForName(
-              'create_table',
-              'What is the name of the migration?'
-            ));
-          this.createDB();
-          this.db.makeMigration(name, this.path);
-          this.db.close();
-        }
-      )
-      .showHelpOnFail(true)
-      .parse();
-  }
+    cliInterface.commands.makeController = this.makeController.bind(this);
+    cliInterface.commands.init = this.init.bind(this);
+    cliInterface.commands.getRoutes = this.getRoutes.bind(this);
+    cliInterface.commands.dbMigrateUp = this.migrateUp.bind(this);
+    cliInterface.commands.dbMigrateDown = this.migrateDown.bind(this);
+    cliInterface.commands.makeMigration = this.makeMigration.bind(this);
 
-  createDB() {
-    const app = this.getApp();
-    this.dbOptions = {
-      database: process.env.DB_DATABASE || 'cocasus',
-      username: process.env.DB_USER || 'my-user',
-      password: process.env.DB_PASSWORD || 'my-password',
-      host: process.env.DB_HOST || 'localhost',
-      dialect: process.env.DB_DIALECT || 'mysql',
-      models: `${app.path}/${app.options.db.modelsRel}`,
-      modelsRel: app.options.db.modelsRel,
-      migrations: `${app.path}/${app.options.db.migrationsRel}`,
-      migrationsRel: app.options.db.migrationsRel,
-    };
-    this.db = new Database(this.dbOptions, this.path);
-  }
-
-  askForName(
-    def = 'cocasus-app',
-    message = 'What is the name of your project?'
-  ) {
-    return new Promise((resolve, reject) => {
-      inquirer
-        .prompt([
-          {
-            type: 'input',
-            name: 'name',
-            message: message,
-            default: def ? def : null,
-          },
-        ])
-        .then((answers) => {
-          resolve(answers.name);
-        })
-        .catch((err) => {
-          reject(err);
-        });
-    });
+    cliInterface.createInterface();
   }
 
   getApp() {
@@ -225,6 +67,38 @@ class Cli {
     }
   }
 
+  createDB() {
+    const app = this.getApp();
+    this.dbOptions = {
+      database: utils.getEnv('DB_DATABASE', 'cocasus'),
+      username: utils.getEnv('DB_USER', 'my-user'),
+      password: utils.getEnv('DB_PASSWORD', 'my-password'),
+      host: utils.getEnv('DB_HOST', 'localhost'),
+      dialect: utils.getEnv('DB_DIALECT', 'mysql'),
+      models: app.options.db.models,
+      migrations: app.options.db.migrations,
+    };
+    this.db = new Database(this.dbOptions, this.path);
+  }
+
+  async migrateUp() {
+    this.createDB();
+    await this.db.migrate();
+    this.db.close();
+  }
+
+  async migrateDown() {
+    this.createDB();
+    await this.db.rollback();
+    this.db.close();
+  }
+
+  makeMigration(name) {
+    this.createDB();
+    this.db.makeMigration(name);
+    this.db.close();
+  }
+
   makeController(argv) {
     if (!argv.name) {
       console.log('Please provide a controller name');
@@ -236,23 +110,57 @@ class Cli {
     }
 
     // Init the folder structure
-    this.structure.createStructure(['Controllers']);
+    this.structure.createStructure([
+      'controllers',
+      path.join('vendor', 'http', 'controllers', 'Controller.js'),
+      path.join('vendor', 'http', 'requests', 'Request.js'),
+      path.join('resources', 'views', 'base.jinja'),
+    ]);
 
     // Get the file content from /../utils/models/controllers/BaseController.js
     let controllerContent = fs.readFileSync(
-      `${__dirname}/../utils/models/controllers/BaseController.js`,
+      `${__dirname}/cli/models/controllers/BaseController.js`,
       'utf8'
     );
     // Replace all $name by the name of the controller
     const controller = controllerContent.replace(/\$name/g, name);
     // Create the file
     fs.writeFileSync(
-      this.path + '/Controllers/' + name + '.js',
+      this.path + '/controllers/' + name + '.js',
       controller,
       'utf8'
     );
 
     console.info(`Made controller ${argv.name}`);
+  }
+
+  async init(argv, name) {
+    if (argv.root !== '.') {
+      this.structure.path = `${this.path}/${argv.root}`;
+      // Create the folder structure
+      fs.mkdirSync(this.structure.path, { recursive: true });
+    }
+    if (argv.force) {
+      this.structure.createStructure(
+        null,
+        true,
+        {
+          name,
+        },
+        argv.type,
+        argv.deps
+      );
+    } else {
+      this.structure.createStructure(
+        null,
+        false,
+        {
+          name,
+        },
+        argv.type,
+        argv.deps
+      );
+    }
   }
 }
 
