@@ -7,7 +7,7 @@ const cocasus = require('cocasus');
 
 const coca = new cocasus();
 
-coca.register('/', (req, res) => {
+coca.route('/', (req, res) => {
   res.send('Hello World!');
 });
 

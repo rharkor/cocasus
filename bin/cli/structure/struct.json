@@ -203,6 +203,22 @@
             }
           }
         }
+      },
+      "lang": {
+        "name": "lang",
+        "type": "directory",
+        "childrens": {
+          "en.json": {
+            "name": "en.json",
+            "type": "file",
+            "path": "models/lang/en.json"
+          },
+          "fr.json": {
+            "name": "fr.json",
+            "type": "file",
+            "path": "models/lang/fr.json"
+          }
+        }
       }
     }
   }
