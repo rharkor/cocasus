@@ -34,7 +34,7 @@
   "description": "Javascript framework for web development",
   "files": [
     "bin/",
-    "middlewares/",
+    "framework/",
     "utils/",
     "index.js"
   ],
