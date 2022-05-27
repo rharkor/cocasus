@@ -23,8 +23,6 @@ class Cli {
     cliInterface.commands.makeController = this.makeController.bind(this);
     cliInterface.commands.init = this.init.bind(this);
     cliInterface.commands.getRoutes = this.getRoutes.bind(this);
-    cliInterface.commands.start = this.start.bind(this);
-    cliInterface.commands.dev = this.dev.bind(this);
     cliInterface.commands.dbMigrateUp = this.migrateUp.bind(this);
     cliInterface.commands.dbMigrateDown = this.migrateDown.bind(this);
     cliInterface.commands.makeMigration = this.makeMigration.bind(this);
@@ -42,41 +40,6 @@ class Cli {
           );
         });
       }
-    }
-  }
-
-  start() {
-    const app = utils.getApp(this.path);
-    if (app) {
-      app.start();
-    }
-  }
-
-  dev() {
-    // Start with nodemon
-    const packageJson = `${this.path}/package.json`;
-    if (fs.existsSync(packageJson)) {
-      // install nodemon
-      exec('npm install nodemon', (error, stdout, stderr) => {
-        if (error) {
-          console.error(`exec error: ${error}`);
-          return;
-        }
-        console.log(stdout);
-        // Add the watch command
-        const packageJsonContent = JSON.parse(fs.readFileSync(packageJson));
-        packageJsonContent.scripts.watch = 'nodemon app.js';
-        fs.writeFileSync(
-          packageJson,
-          JSON.stringify(packageJsonContent, null, 2)
-        );
-        console.log('Added nodemon to package.json');
-        console.log(
-          'You can now run "npm run watch" to start the server with hot reload'
-        );
-      });
-    } else {
-      console.error(`${appJsPath} not found`);
     }
   }
 

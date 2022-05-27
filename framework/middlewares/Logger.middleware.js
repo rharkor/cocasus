@@ -24,33 +24,47 @@ class Logger {
       timestampFormat: 'YYYY-MM-DD HH:mm:ss',
     });
     const error = (err, req, res, next) => {
-      errorLogger.error(err.message);
-      if (! this.options.error.exceptionTemplate) {
-        res
-        .status(parseInt(this.options.error.exceptionCode))
-        .send({ error: this.debug ? err.message : this.options.error.message });
+      if (error) {
+        errorLogger.error(err.message);
+      }
+      if (!this.options.error.exceptionTemplate) {
+        if (res)
+          res.status(parseInt(this.options.error.exceptionCode)).send({
+            error: this.debug ? err.message : this.options.error.message,
+          });
       } else {
         const fileName = this.options.error.exceptionTemplate;
-        const filePath = `${dirname(require.main.filename)}/${this.viewsPath}/${fileName}`;
-        res.status(parseInt(this.options.error.exceptionCode)).render(filePath, {
-          debug: this.debug,
-          error: err,
-        });
+        const filePath = `${dirname(require.main.filename)}/${
+          this.viewsPath
+        }/${fileName}`;
+        if (res)
+          res
+            .status(parseInt(this.options.error.exceptionCode))
+            .render(filePath, {
+              debug: this.debug,
+              error: err,
+            });
       }
     };
     const routeUndefined = (req, res, next) => {
       errorLogger.error(`Route ${req.url} not found`);
-      if (! this.options.error.routeUndefinedTemplate) {
-      res
-        .status(parseInt(this.options.error.routeUndefinedCode))
-        .send({ error: this.debug ? `Route ${req.url} not found` : this.options.error.message });
+      if (!this.options.error.routeUndefinedTemplate) {
+        res.status(parseInt(this.options.error.routeUndefinedCode)).send({
+          error: this.debug
+            ? `Route ${req.url} not found`
+            : this.options.error.message,
+        });
       } else {
         const fileName = this.options.error.routeUndefinedTemplate;
-        const filePath = `${dirname(require.main.filename)}/${this.viewsPath}/${fileName}`;
-        res.status(parseInt(this.options.error.routeUndefinedCode)).render(filePath, {
-          debug: this.debug,
-          req,
-        });
+        const filePath = `${dirname(require.main.filename)}/${
+          this.viewsPath
+        }/${fileName}`;
+        res
+          .status(parseInt(this.options.error.routeUndefinedCode))
+          .render(filePath, {
+            debug: this.debug,
+            req,
+          });
       }
     };
 
@@ -83,7 +97,7 @@ class Logger {
     this.loggers.access = access;
     this.loggersSource.error = errorLogger;
     this.loggersSource.routeUndefined = routeUndefined;
-    this.loggersSource.access = accessLogger;   
+    this.loggersSource.access = accessLogger;
   }
 
   getLoggers() {
