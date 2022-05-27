@@ -8,8 +8,6 @@ cliInterface.commands = {
   makeController: null,
   init: null,
   getRoutes: null,
-  start: null,
-  dev: null,
   dbMigrateUp: null,
   dbMigrateDown: null,
   makeMigration: null,
@@ -91,26 +89,6 @@ cliInterface.createInterface = () => {
       () => {
         if (cliInterface.commands.getRoutes) {
           cliInterface.commands.getRoutes();
-        }
-      }
-    )
-    .command(
-      'start',
-      'Start the app',
-      (yargs) => {},
-      () => {
-        if (cliInterface.commands.start) {
-          cliInterface.commands.start();
-        }
-      }
-    )
-    .command(
-      'dev',
-      'Start the app in development mode (hot-reload)',
-      (yargs) => {},
-      () => {
-        if (cliInterface.commands.dev) {
-          cliInterface.commands.dev();
         }
       }
     )
