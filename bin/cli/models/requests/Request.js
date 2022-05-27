@@ -1,18 +1,19 @@
-const nunjucks = require('nunjucks');
-const fs = require('fs');
 const { dirname } = require('path');
 const { validationResult, checkSchema } = require('express-validator');
 
+const utils = require('../../utils/method');
 class Request {
   constructor() {}
 
   static view(
     path,
     data,
-    root = `${dirname(require.main.filename)}/resources/views`
+    root = `${dirname(require.main.filename)}`
   ) {
     return (req, res) => {
-      res.render(`${root}/${path}`, data);
+      const app = utils.getApp(root);
+      const viewsPath = app.options.init.views;
+      res.render(`${root}/${viewsPath}/${path}`, data);
     };
   }
 

@@ -1,10 +1,12 @@
 const fs = require('fs');
+const { dirname } = require('path');
 const simpleLogger = require('simple-node-logger');
 
 class Logger {
-  constructor(options, debug) {
+  constructor(options, debug, viewsPath) {
     this.options = options;
     this.debug = debug;
+    this.viewsPath = viewsPath;
     this.loggers = {};
     this.loggersSource = {};
   }
@@ -23,9 +25,33 @@ class Logger {
     });
     const error = (err, req, res, next) => {
       errorLogger.error(err.message);
-      res
+      if (! this.options.error.exceptionTemplate) {
+        res
         .status(parseInt(this.options.error.exceptionCode))
         .send({ error: this.debug ? err.message : this.options.error.message });
+      } else {
+        const fileName = this.options.error.exceptionTemplate;
+        const filePath = `${dirname(require.main.filename)}/${this.viewsPath}/${fileName}`;
+        res.status(parseInt(this.options.error.exceptionCode)).render(filePath, {
+          debug: this.debug,
+          error: err,
+        });
+      }
+    };
+    const routeUndefined = (req, res, next) => {
+      errorLogger.error(`Route ${req.url} not found`);
+      if (! this.options.error.routeUndefinedTemplate) {
+      res
+        .status(parseInt(this.options.error.routeUndefinedCode))
+        .send({ error: this.debug ? `Route ${req.url} not found` : this.options.error.message });
+      } else {
+        const fileName = this.options.error.routeUndefinedTemplate;
+        const filePath = `${dirname(require.main.filename)}/${this.viewsPath}/${fileName}`;
+        res.status(parseInt(this.options.error.routeUndefinedCode)).render(filePath, {
+          debug: this.debug,
+          req,
+        });
+      }
     };
 
     this.createFolder(this.options.access.path);
@@ -53,9 +79,11 @@ class Logger {
       next();
     };
     this.loggers.error = error;
+    this.loggers.routeUndefined = routeUndefined;
     this.loggers.access = access;
     this.loggersSource.error = errorLogger;
-    this.loggersSource.access = accessLogger;
+    this.loggersSource.routeUndefined = routeUndefined;
+    this.loggersSource.access = accessLogger;   
   }
 
   getLoggers() {

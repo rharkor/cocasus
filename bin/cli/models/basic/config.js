@@ -2,7 +2,14 @@ const cocasus = require('cocasus');
 
 const HomeController = require('./controllers/HomeController');
 
-const coca = new cocasus();
+const coca = new cocasus({
+  logger: {
+    error: {
+      exceptionTemplate: 'errors/500.jinja',
+      routeUndefinedTemplate: 'errors/404.jinja'
+    }
+  }
+});
 
 coca.register('get', '/', (req, res) => {
   res.send('Hello World!');

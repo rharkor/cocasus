@@ -33,4 +33,29 @@ utils.camelToSnake = (str) => {
   return str.replace(/([A-Z])/g, '_$1').toLowerCase();
 };
 
+utils.getApp = (path) => {
+  try {
+    const app = require(`${path}/config.js`);
+    // Test if app is an empty bracket
+    if (Object.keys(app).length === 0) {
+      console.error(
+        'No app found, make sure to export your app in config.js\nExample: module.exports = coca;'
+      );
+      return;
+    }
+    return app;
+  } catch (e) {
+    const moduleName = e.message.split("'")[1];
+    if (
+      e.code === 'MODULE_NOT_FOUND' &&
+      moduleName === `${path}/config.js`
+    ) {
+      // Get the name of the not found module
+      console.error('Please declare your app in config.js');
+      return;
+    }
+    console.log(e);
+  }
+}
+
 module.exports = utils;

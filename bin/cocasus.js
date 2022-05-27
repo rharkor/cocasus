@@ -29,34 +29,9 @@ class Cli {
     cliInterface.createInterface();
   }
 
-  getApp() {
-    try {
-      const app = require(`${this.path}/config.js`);
-      // Test if app is an empty bracket
-      if (Object.keys(app).length === 0) {
-        console.error(
-          'No app found, make sure to export your app in config.js\nExample: module.exports = coca;'
-        );
-        return;
-      }
-      return app;
-    } catch (e) {
-      const moduleName = e.message.split("'")[1];
-      if (
-        e.code === 'MODULE_NOT_FOUND' &&
-        moduleName === `${this.path}/config.js`
-      ) {
-        // Get the name of the not found module
-        console.error('Please declare your app in config.js');
-        return;
-      }
-      console.log(e);
-    }
-  }
-
   getRoutes() {
-    if (this.getApp()) {
-      const routes = this.getApp().getRoutes();
+    if (utils.getApp(this.path)) {
+      const routes = utils.getApp(this.path).getRoutes();
       if (routes) {
         routes.forEach((route) => {
           console.log(
@@ -68,7 +43,7 @@ class Cli {
   }
 
   createDB() {
-    const app = this.getApp();
+    const app = utils.getApp(this.path);
     this.dbOptions = {
       database: utils.getEnv('DB_DATABASE', 'cocasus'),
       username: utils.getEnv('DB_USER', 'my-user'),
