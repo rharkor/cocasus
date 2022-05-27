@@ -1,10 +1,4 @@
 {
-  "package.json": {
-    "name": "package.json",
-    "type": "file",
-    "path": "models/basic/package.json",
-    "replace": { "$name": "$name" }
-  },
   "install": {
     "name": "npm i",
     "type": "command"
@@ -153,6 +147,22 @@
             "type": "file",
             "path": "models/views/base.jinja",
             "replace": { "$name": "$name" }
+          },
+          "errors": {
+            "name": "errors",
+            "type": "directory",
+            "childrens": {
+              "404.jinja": {
+                "name": "404.jinja",
+                "type": "file",
+                "path": "models/views/404.jinja"
+              },
+              "500.jinja": {
+                "name": "500.jinja",
+                "type": "file",
+                "path": "models/views/500.jinja"
+              }
+            }
           }
         }
       },

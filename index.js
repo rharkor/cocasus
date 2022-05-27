@@ -39,6 +39,9 @@ class Cocasus {
           fileName: 'error.log',
           message: 'Something went wrong..',
           exceptionCode: utils.getEnv('EXCEPTION_CODE', 500),
+          exceptionTemplate:  null,
+          routeUndefinedCode: utils.getEnv('ROUTE_UNDEFINED_CODE', 404),
+          routeUndefinedTemplate: null,
         },
         access: {
           path: './log',
@@ -81,9 +84,12 @@ class Cocasus {
     if (this.options.logger.enabled && !this.options.logger.object) {
       this.options.logger.object = new Logger(
         this.options.logger,
-        this.options.debug
+        this.options.debug,
+        this.options.init.views
       );
     }
+    this.setupLogger();
+
 
     // Init the db connection
     if (this.options.db.enabled) {
@@ -137,7 +143,10 @@ class Cocasus {
   setupLogger() {
     if (this.options.logger.object) {
       this.options.logger.object.getLoggers().forEach((logger) => {
-        this.app.use(logger);
+        // Test if logger function name is routeUndefined
+        if (logger.name !== 'routeUndefined') {
+          this.app.use(logger);
+        }
       });
     }
   }
@@ -151,7 +160,15 @@ class Cocasus {
         "Warning you are running in debug mode, don't use it in production"
       );
     }
-    this.setupLogger();
+
+    // Attach the routeUndefined logger
+    if (this.options.logger.object) {
+      this.options.logger.object.getLoggers().forEach((logger) => {
+        if (logger.name === 'routeUndefined') {
+          this.app.use(logger);
+        }
+      });
+    }
 
     const callbackRun = () => {
       if (this.options.listening.verbose) {
@@ -186,21 +203,11 @@ class Cocasus {
   }
 
   errorHandler(e, req, res, next) {
-    if (this.options.debug) {
-      console.error(e);
-      this.options.logger.object.getSourceLoggers().error.error(e.message);
-      if (res) {
-        res.status(this.options.logger.exceptionCode).send(e);
+    this.options.logger.object.getLoggers().find((logger) => {
+      if (logger.name === 'error') {
+        logger(e, req, res, next);
       }
-    } else {
-      console.error(e);
-      this.options.logger.object.getSourceLoggers().error.error(e.message);
-      if (res) {
-        res
-          .status(this.options.logger.exceptionCode)
-          .send('Something went wrong');
-      }
-    }
+    });
   }
 }
 

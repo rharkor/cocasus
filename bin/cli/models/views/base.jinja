@@ -21,10 +21,12 @@
 
 <body>
     <div class="container">
-        Base
-        <div class="date">
-            {{ date }}
-        </div>
+        {% block content %}
+            Base
+            <div class="date">
+                {{ date }}
+            </div>
+        {% endblock %}
     </div>
 </body>
 

@@ -26,16 +26,9 @@ class Structure {
     installDeps = true
   ) {
     if (type === 'web') {
-      this.#create(
-        this.structure,
-        this.path,
-        only,
-        force,
-        options,
-        installDeps
-      );
+      this.create(this.structure, this.path, only, force, options, installDeps);
     } else if (type === 'api') {
-      this.#create(
+      this.create(
         this.apiStructure,
         this.path,
         only,
@@ -46,7 +39,7 @@ class Structure {
     }
   }
 
-  #create(
+  create(
     object,
     absPath = this.path,
     only = null,
@@ -80,7 +73,7 @@ class Structure {
             }
           }
           if (value.childrens) {
-            this.#create(
+            this.create(
               value.childrens,
               path.join(absPath, value.name),
               only,
