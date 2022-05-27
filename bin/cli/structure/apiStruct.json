@@ -118,7 +118,7 @@
           "1_create_table_user.js": {
             "name": "1_create_table_user.js",
             "type": "file",
-            "path": "database/1_create_table_user.js"
+            "path": "models/database/1_create_table_user.js"
           }
         }
       },

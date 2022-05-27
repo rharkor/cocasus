@@ -92,10 +92,13 @@ class Structure {
           }
         } else if (value.type === 'file') {
           // Read the content from value.path file
-          let content = fs.readFileSync(
-            `${__dirname}/../${value.path}`,
-            'utf8'
-          );
+          let content = null;
+          try {
+            content = fs.readFileSync(`${__dirname}/../${value.path}`, 'utf8');
+          } catch (error) {
+            console.error(error);
+            return;
+          }
           if (value.replace && Object.keys(value.replace).length > 0) {
             Object.keys(value.replace).forEach((key) => {
               const rkey = key.replace('$', '\\$');
