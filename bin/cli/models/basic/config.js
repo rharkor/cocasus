@@ -11,16 +11,16 @@ const coca = new cocasus({
   }
 });
 
-coca.register('get', '/', (req, res) => {
+coca.route('get', '/', (req, res) => {
   res.send('Hello World!');
 });
 
-coca.register('get', '/users', (req, res) => {
+coca.route('get', '/users', (req, res) => {
   coca.models.user.findAll().then((users) => {
     res.send(users);
   });
 });
 
-coca.register('get', '/home', HomeController.call('index'));
+coca.route('get', '/home', HomeController.call('index'));
 
 module.exports = coca;

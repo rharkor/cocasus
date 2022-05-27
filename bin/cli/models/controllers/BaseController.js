@@ -5,7 +5,10 @@ class $name extends Controller {
   static path = __dirname;
 
   static index() {
-    return Request.view('base.jinja', { date: new Date() });
+    // Return randomly a description
+    const descriptions = ['home.desc1', 'home.desc2'];
+    const description = descriptions[Math.floor(Math.random() * descriptions.length)];
+    return Request.view('base.jinja', { description, date: new Date() });
   }
 }
 

@@ -1,8 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const sassMiddleware = require('node-sass-middleware');
-const { dirname } = require('path');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const fs = require('fs');
+const i18n = require('i18next');
+const Backend = require('i18next-node-fs-backend');
+const i18nextMiddleware = require('i18next-express-middleware');
 
 const utils = require('./utils/method');
 const Logger = require('./framework/middlewares/Logger.middleware.js');
@@ -29,6 +33,7 @@ class Cocasus {
       init: {
         cors: true,
         json: true,
+        cookies: true,
         static: 'resources/static',
         views: 'resources/views',
         viewEngine: 'nunjucks',
@@ -39,7 +44,7 @@ class Cocasus {
           fileName: 'error.log',
           message: 'Something went wrong..',
           exceptionCode: utils.getEnv('EXCEPTION_CODE', 500),
-          exceptionTemplate:  null,
+          exceptionTemplate: null,
           routeUndefinedCode: utils.getEnv('ROUTE_UNDEFINED_CODE', 404),
           routeUndefinedTemplate: null,
         },
@@ -66,6 +71,13 @@ class Cocasus {
         migrations: 'database/migrations',
         enabled: true, // Set it to false if you don't want to use a database
       },
+      lang: {
+        default: 'en',
+        queryParameter: 'lang',
+        cookie: 'lang',
+        directory: 'resources/lang',
+        enabled: true,
+      },
       models: [],
       debug,
     };
@@ -90,6 +102,35 @@ class Cocasus {
     }
     this.setupLogger();
 
+    if (this.options.init.cors) {
+      this.app.use(cors());
+    }
+    if (this.options.init.json) {
+      this.app.use(express.json());
+    }
+    if (this.options.init.cookies) {
+      this.app.use(cookieParser());
+    }
+
+    if (this.options.lang.enabled) {
+      // Setup lang
+      const locales = fs
+        .readdirSync(path.join(this.path, this.options.lang.directory))
+        .map((file) => file.split('.')[0]);
+      i18n
+        .use(Backend)
+        .use(i18nextMiddleware.LanguageDetector)
+        .init({
+          backend: {
+            loadPath:
+              path.join(this.path, this.options.lang.directory) +
+              '/{{lng}}.json',
+          },
+          fallbackLng: ['en'],
+          preload: locales,
+        });
+      this.app.use(i18nextMiddleware.handle(i18n));
+    }
 
     // Init the db connection
     if (this.options.db.enabled) {
@@ -107,7 +148,7 @@ class Cocasus {
     if (this.options.init.viewEngine) {
       if (this.options.init.viewEngine === 'nunjucks') {
         const nunjucks = require('nunjucks');
-        nunjucks.configure(this.options.init.views, {
+        const env = nunjucks.configure(this.options.init.views, {
           autoescape: true,
           express: this.app,
         });
@@ -125,13 +166,6 @@ class Cocasus {
         prefix: '/styles',
       })
     );
-
-    if (this.options.init.cors) {
-      this.app.use(cors());
-    }
-    if (this.options.init.json) {
-      this.app.use(express.json());
-    }
 
     // Setup the file directory
     this.app.use(
@@ -186,7 +220,7 @@ class Cocasus {
     }
   }
 
-  register(method, path, callback) {
+  route(method, path, callback) {
     const callbackGuarded = (req, res, next) => {
       try {
         callback(req, res, next);

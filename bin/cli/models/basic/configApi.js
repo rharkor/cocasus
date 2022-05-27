@@ -2,11 +2,15 @@ const cocasus = require('cocasus');
 
 const HomeController = require('./controllers/HomeController');
 
-const coca = new cocasus();
+const coca = new cocasus({
+  lang: {
+    enabled: false,
+  }
+});
 
-coca.register('get', '/', HomeController.call('index'));
+coca.route('get', '/', HomeController.call('index'));
 
-coca.register('get', '/users', (req, res) => {
+coca.route('get', '/users', (req, res) => {
   coca.models.user.findAll().then((users) => {
     res.send(users);
   });

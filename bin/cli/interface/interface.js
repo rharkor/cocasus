@@ -145,6 +145,8 @@ cliInterface.createInterface = () => {
         }
       }
     )
+    .demandCommand(1)
+    .strict()
     .showHelpOnFail(true)
     .parse();
 };

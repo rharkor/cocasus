@@ -22,7 +22,7 @@
 <body>
     <div class="container">
         {% block content %}
-            Base
+            {{ t('home.title') }} - {{ t(description) }}
             <div class="date">
                 {{ date }}
             </div>
