@@ -10,6 +10,16 @@ class BaseModel {
         primaryKey: true,
         autoIncrement: true,
       },
+      createdAt: {
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+        type: DataTypes.DATE,
+      },
     };
     this.defaultOptions = {
       freezeTableName: true,
