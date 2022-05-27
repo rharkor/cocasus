@@ -19,12 +19,28 @@ class Database {
       }
     );
 
-    const orgFindAll = SequelizeModel.findAll;
-    SequelizeModel.findAll = function () {
-      return orgFindAll.apply(this, arguments).catch((err) => {
-        errorHandler(err);
-      });
+    this.sequelize.query = async function () {
+      try {
+        // proxy this call
+        return {
+          resp: await Sequelize.prototype.query.apply(this, arguments),
+          error: false,
+        };
+      } catch (err) {
+        // handle it
+        return {
+          resp: null,
+          error: err,
+        };
+      }
     };
+
+    // const orgFindAll = SequelizeModel.findAll;
+    // SequelizeModel.findAll = function () {
+    //   return orgFindAll.apply(this, arguments).catch((err) => {
+    //     errorHandler(err);
+    //   });
+    // };
 
     this.migrationsPath = config.migrations;
     this.modelsPath = config.models;
