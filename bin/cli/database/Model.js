@@ -3,7 +3,6 @@ const utils = require('../utils/method');
 
 class BaseModel {
   constructor(name, content = {}, options = {}) {
-    super();
     this.name = utils.camelToSnake(name);
     this.defaultContent = {
       id: {
@@ -11,20 +10,11 @@ class BaseModel {
         primaryKey: true,
         autoIncrement: true,
       },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
     };
     this.defaultOptions = {
-      timestamps: true,
       freezeTableName: true,
+      timestamps: true,
+      underscored: true,
     };
     this.content = Object.assign({}, content, this.defaultContent);
     this.options = Object.assign({}, options, this.defaultOptions);
