@@ -1,9 +1,9 @@
 const { DataTypes } = require('sequelize');
-
 const utils = require('../utils/method');
 
-class Model {
+class BaseModel {
   constructor(name, content = {}, options = {}) {
+    super();
     this.name = utils.camelToSnake(name);
     this.defaultContent = {
       id: {
@@ -24,6 +24,7 @@ class Model {
     };
     this.defaultOptions = {
       timestamps: true,
+      freezeTableName: true,
     };
     this.content = Object.assign({}, content, this.defaultContent);
     this.options = Object.assign({}, options, this.defaultOptions);
@@ -34,4 +35,4 @@ class Model {
   }
 }
 
-module.exports = Model;
+module.exports = BaseModel;
