@@ -1,5 +1,4 @@
 const { Sequelize } = require('sequelize');
-const SequelizeModel = require('sequelize/lib/model');
 const path = require('path');
 const fs = require('fs');
 const utils = require('../../utils/method');
@@ -19,35 +18,27 @@ class Database {
       }
     );
 
-    this.sequelize.query = async function () {
+    this.defaultQuery = async function () {
       try {
-        // proxy this call
-        return {
-          resp: await Sequelize.prototype.query.apply(this, arguments),
-          error: false,
-        };
+        return await Sequelize.prototype.query.apply(this, arguments);
       } catch (err) {
-        // handle it
-        return {
-          resp: null,
-          error: err,
-        };
+        throw err;
       }
     };
-
-    // const orgFindAll = SequelizeModel.findAll;
-    // SequelizeModel.findAll = function () {
-    //   return orgFindAll.apply(this, arguments).catch((err) => {
-    //     errorHandler(err);
-    //   });
-    // };
+    this.sequelize.query = async function () {
+      try {
+        return await Sequelize.prototype.query.apply(this, arguments);
+      } catch (err) {
+        // handle it
+        err.error = err.original;
+        return err;
+      }
+    };
 
     this.migrationsPath = config.migrations;
     this.modelsPath = config.models;
     this.models = this.sequelize.models;
     this.path = path;
-
-    this.auth();
   }
 
   async auth() {

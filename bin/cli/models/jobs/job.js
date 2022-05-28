@@ -22,4 +22,6 @@ job.setHandler(() => {
   console.log('test');
 });
 
+job.enabled = false;
+
 module.exports = job;

@@ -152,7 +152,13 @@
       "seeders": {
         "name": "seeders",
         "type": "directory",
-        "childrens": {}
+        "childrens": {
+          "userSeeder.js": {
+            "name": "userSeeder.js",
+            "type": "file",
+            "path": "models/database/seeder.js"
+          }
+        }
       }
     }
   },

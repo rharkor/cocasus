@@ -23,11 +23,14 @@ class Cli {
     cliInterface.commands.init = this.init.bind(this);
     cliInterface.commands.getRoutes = this.getRoutes.bind(this);
     cliInterface.commands.getJobs = this.getJobs.bind(this);
-    cliInterface.commands.dbMigrateUp = this.migrateUp.bind(this);
-    cliInterface.commands.dbMigrateDown = this.migrateDown.bind(this);
     cliInterface.commands.makeMigration = this.makeMigration.bind(this);
     cliInterface.commands.makeModel = this.makeModel.bind(this);
     cliInterface.commands.makeJob = this.makeJob.bind(this);
+    cliInterface.commands.dbMigrateUp = this.migrateUp.bind(this);
+    cliInterface.commands.dbMigrateDown = this.migrateDown.bind(this);
+    cliInterface.commands.dbMigrateReset = this.migrateReset.bind(this);
+    cliInterface.commands.dbMigrateFresh = this.migrateFresh.bind(this);
+    cliInterface.commands.dbSeed = this.dbSeed.bind(this);
 
     cliInterface.createInterface();
   }
@@ -65,6 +68,25 @@ class Cli {
     this.db = new Database(this.dbOptions, this.path);
   }
 
+  async dbSeed() {
+    // Get the app
+    const app = utils.getApp(this.path);
+    if (!app) {
+      return;
+    }
+    // Don't handle the error
+    app.db.sequelize.query = app.db.defaultQuery;
+
+    const dbSeeder = app.options.db.seeders;
+    const files = fs.readdirSync(dbSeeder);
+    // Execute the seeders
+    for (const seeder of files) {
+      await require(path.join(this.path, dbSeeder, seeder))(app);
+    }
+
+    app.db.close();
+  }
+
   async migrateUp() {
     this.createDB();
     await this.db.migrate();
@@ -74,6 +96,18 @@ class Cli {
   async migrateDown() {
     this.createDB();
     await this.db.rollback();
+    this.db.close();
+  }
+
+  async migrateReset() {
+    this.createDB();
+    await this.db.reset();
+    this.db.close();
+  }
+
+  async migrateFresh() {
+    this.createDB();
+    await this.db.fresh();
     this.db.close();
   }
 
