@@ -25,6 +25,7 @@ class Cli {
     cliInterface.commands.dbMigrateUp = this.migrateUp.bind(this);
     cliInterface.commands.dbMigrateDown = this.migrateDown.bind(this);
     cliInterface.commands.makeMigration = this.makeMigration.bind(this);
+    cliInterface.commands.makeModel = this.makeModel.bind(this);
 
     cliInterface.createInterface();
   }
@@ -92,21 +93,72 @@ class Cli {
       path.join('resources', 'views', 'base.jinja'),
     ]);
 
-    // Get the file content from /../utils/models/controllers/BaseController.js
+    // Get the file content
     let controllerContent = fs.readFileSync(
       `${__dirname}/cli/models/controllers/BaseController.js`,
       'utf8'
     );
     // Replace all $name by the name of the controller
     const controller = controllerContent.replace(/\$name/g, name);
+    // Get the app
+    const app = utils.getApp(this.path);
+    if (!app) {
+      return;
+    }
+    const controllersPath = app.options.init.controllers;
     // Create the file
     fs.writeFileSync(
-      this.path + '/controllers/' + name + '.js',
+      path.join(this.path, controllersPath, name + '.js'),
       controller,
       'utf8'
     );
 
     console.info(`Made controller ${argv.name}`);
+  }
+
+  makeModel(argv) {
+    if (!argv.name) {
+      console.log('Please provide a model name');
+      return;
+    }
+    let name = argv.name;
+    if (!name.endsWith('Model')) {
+      name = `${name}Model`;
+    }
+
+    // Init the folder structure
+    this.structure.createStructure([
+      path.join('database', 'models'),
+      path.join('vendor', 'db', 'Model.js'),
+    ]);
+
+    // Get the file content
+    let modelContent = fs.readFileSync(
+      `${__dirname}/cli/models/database/BaseModel.js`,
+      'utf8'
+    );
+    // Replace all $name by the name of the model
+    const app = utils.getApp(this.path);
+    if (!app) {
+      return;
+    }
+    const modelsPath = app.options.db.models;
+    const nameFirstUpper = name.charAt(0).toUpperCase() + name.slice(1);
+    let snakeName = utils.camelToSnake(argv.name);
+    if (snakeName.charAt(0) === '_') {
+      snakeName = snakeName.slice(1);
+    }
+    const model = modelContent
+      .replace(/\$name/g, snakeName)
+      .replace(/\$nfu/g, nameFirstUpper);
+    // Create the file
+    fs.writeFileSync(
+      path.join(this.path, modelsPath, name + '.js'),
+      model,
+      'utf8'
+    );
+
+    console.info(`Made model ${argv.name}`);
   }
 
   async init(argv, name) {
