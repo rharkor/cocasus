@@ -133,18 +133,6 @@ class Cocasus {
       this.app.use(i18nextMiddleware.handle(i18n));
     }
 
-    // Init the db connection
-    if (this.options.db.enabled) {
-      this.db = new Database(
-        this.options.db,
-        this.options.debug,
-        this.path,
-        this.errorHandler.bind(this)
-      );
-      this.db.referenceAllModels();
-      // Simplify the access to the models
-      this.models = this.db.models;
-    }
     this.app.set('views', path.join(this.path, this.options.init.views));
     if (this.options.init.viewEngine) {
       if (this.options.init.viewEngine === 'nunjucks') {
@@ -196,6 +184,10 @@ class Cocasus {
       );
     }
 
+    utils.printEnvMessages();
+
+    this.initDb();
+
     // Attach the routeUndefined logger
     if (this.options.logger.object) {
       this.options.logger.object.getLoggers().forEach((logger) => {
@@ -243,6 +235,21 @@ class Cocasus {
         logger(e, req, res, next);
       }
     });
+  }
+
+  initDb() {
+    // Init the db connection
+    if (this.options.db.enabled) {
+      this.db = new Database(
+        this.options.db,
+        this.options.debug,
+        this.path,
+        this.errorHandler.bind(this)
+      );
+      this.db.referenceAllModels();
+      // Simplify the access to the models
+      this.models = this.db.models;
+    }
   }
 }
 

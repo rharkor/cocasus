@@ -20,13 +20,26 @@ utils.assign = (target, source) => {
   return result;
 };
 
+const envMessages = [];
+
 utils.getEnv = (key, defaultValue) => {
   const debug = process.env.DEBUG || true;
   if (process.env[key]) {
     return process.env[key];
   }
-  if (debug) console.warn(`${key} is not defined in .env file`);
+  if (debug) envMessages.push(`${key} is not defined in .env file`);
   return defaultValue;
+};
+
+utils.printEnvMessages = () => {
+  if (envMessages.length > 0) {
+    console.log('\n');
+    console.log('The following environment variables are not defined:');
+    for (let i = 0; i < envMessages.length; i += 1) {
+      console.log(envMessages[i]);
+    }
+    console.log('\n');
+  }
 };
 
 utils.camelToSnake = (str) => {
@@ -46,16 +59,13 @@ utils.getApp = (path) => {
     return app;
   } catch (e) {
     const moduleName = e.message.split("'")[1];
-    if (
-      e.code === 'MODULE_NOT_FOUND' &&
-      moduleName === `${path}/config.js`
-    ) {
+    if (e.code === 'MODULE_NOT_FOUND' && moduleName === `${path}/config.js`) {
       // Get the name of the not found module
       console.error('Please declare your app in config.js');
       return;
     }
     console.log(e);
   }
-}
+};
 
 module.exports = utils;
