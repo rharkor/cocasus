@@ -22,10 +22,12 @@ class Cli {
     cliInterface.commands.makeController = this.makeController.bind(this);
     cliInterface.commands.init = this.init.bind(this);
     cliInterface.commands.getRoutes = this.getRoutes.bind(this);
+    cliInterface.commands.getJobs = this.getJobs.bind(this);
     cliInterface.commands.dbMigrateUp = this.migrateUp.bind(this);
     cliInterface.commands.dbMigrateDown = this.migrateDown.bind(this);
     cliInterface.commands.makeMigration = this.makeMigration.bind(this);
     cliInterface.commands.makeModel = this.makeModel.bind(this);
+    cliInterface.commands.makeJob = this.makeJob.bind(this);
 
     cliInterface.createInterface();
   }
@@ -40,6 +42,12 @@ class Cli {
           );
         });
       }
+    }
+  }
+
+  getJobs() {
+    if (utils.getApp(this.path)) {
+      utils.getApp(this.path).jobs.printJobs();
     }
   }
 
@@ -75,12 +83,8 @@ class Cli {
     this.db.close();
   }
 
-  makeController(argv) {
-    if (!argv.name) {
-      console.log('Please provide a controller name');
-      return;
-    }
-    let name = argv.name;
+  makeController(baseName) {
+    let name = baseName;
     if (!name.endsWith('Controller')) {
       name = `${name}Controller`;
     }
@@ -113,15 +117,11 @@ class Cli {
       'utf8'
     );
 
-    console.info(`Made controller ${argv.name}`);
+    console.info(`Made controller ${baseName}`);
   }
 
-  makeModel(argv) {
-    if (!argv.name) {
-      console.log('Please provide a model name');
-      return;
-    }
-    let name = argv.name;
+  makeModel(baseName) {
+    let name = baseName;
     if (!name.endsWith('Model')) {
       name = `${name}Model`;
     }
@@ -144,7 +144,7 @@ class Cli {
     }
     const modelsPath = app.options.db.models;
     const nameFirstUpper = name.charAt(0).toUpperCase() + name.slice(1);
-    let snakeName = utils.camelToSnake(argv.name);
+    let snakeName = utils.camelToSnake(baseName);
     if (snakeName.charAt(0) === '_') {
       snakeName = snakeName.slice(1);
     }
@@ -158,7 +158,7 @@ class Cli {
       'utf8'
     );
 
-    console.info(`Made model ${argv.name}`);
+    console.info(`Made model ${baseName}`);
   }
 
   async init(argv, name) {
@@ -188,6 +188,37 @@ class Cli {
         argv.deps
       );
     }
+  }
+
+  makeJob(baseName) {
+    let name = baseName;
+    if (!baseName.endsWith('Job')) {
+      name = `${baseName}Job`;
+    }
+
+    // Init the folder structure
+    this.structure.createStructure([
+      'jobs',
+      path.join('vendor', 'jobs', 'Job.js'),
+    ]);
+
+    // Get the file content
+    let jobContent = fs.readFileSync(
+      `${__dirname}/cli/models/jobs/baseJob.js`,
+      'utf8'
+    );
+    // Replace all $name by the name of the job
+    const job = jobContent.replace(/\$name/g, baseName);
+    // Get the app
+    const app = utils.getApp(this.path);
+    if (!app) {
+      return;
+    }
+    const jobsPath = app.options.jobs.directory;
+    // Create the file
+    fs.writeFileSync(path.join(this.path, jobsPath, name + '.js'), job, 'utf8');
+
+    console.info(`Made job ${baseName}`);
   }
 }
 
