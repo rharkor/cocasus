@@ -47,6 +47,15 @@ class Database {
     await this.umzug.down();
   }
 
+  async reset() {
+    await this.umzug.down({ to: 0 });
+  }
+
+  async fresh() {
+    await this.umzug.down({ to: 0 });
+    await this.umzug.up();
+  }
+
   makeMigration(name) {
     name = utils.camelToSnake(name);
     // Get the model path

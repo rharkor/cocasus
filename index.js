@@ -71,6 +71,7 @@ class Cocasus {
         dialect: utils.getEnv('DB_DIALECT', 'mysql'),
         models: 'database/models',
         migrations: 'database/migrations',
+        seeders: 'database/seeders',
         enabled: true, // Set it to false if you don't want to use a database
       },
       lang: {
@@ -120,6 +121,8 @@ class Cocasus {
     this.setupLogger();
 
     this.jobs = new Jobs(this.options.jobs, this.path);
+
+    this.initDb();
 
     if (this.options.init.cors) {
       this.app.use(cors());
@@ -204,7 +207,7 @@ class Cocasus {
 
     utils.printEnvMessages();
 
-    this.initDb();
+    this.authDb();
 
     // register jobs
     this.jobs.startHandling();
@@ -270,6 +273,12 @@ class Cocasus {
       this.db.referenceAllModels();
       // Simplify the access to the models
       this.models = this.db.models;
+    }
+  }
+
+  authDb() {
+    if (this.options.db.enabled) {
+      this.db.auth();
     }
   }
 }

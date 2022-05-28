@@ -17,13 +17,17 @@ coca.route('get', '/', (req, res) => {
 
 coca.route('get', '/users', (req, res) => {
   coca.models.user.findAll().then((users) => {
+    if (users && users.error) {
+      coca.errorHandler(users.error, req, res);
+      return;
+    }
     res.send(users);
   });
 });
 
 coca.route('get', '/users/:id', (req, res) => {
   coca.models.user.findByPk(req.params.id).then((user) => {
-    if (user.error) {
+    if (user && user.error) {
       coca.errorHandler(user.error, req, res);
       return;
     }

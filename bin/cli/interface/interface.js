@@ -9,11 +9,14 @@ cliInterface.commands = {
   init: null,
   getRoutes: null,
   getJobs: null,
-  dbMigrateUp: null,
-  dbMigrateDown: null,
   makeMigration: null,
   makeModel: null,
   makeJob: null,
+  dbMigrateUp: null,
+  dbMigrateDown: null,
+  dbMigrateReset: null,
+  dbMigrateFresh: null,
+  dbSeed: null,
 };
 
 function askForName(
@@ -189,6 +192,45 @@ cliInterface.createInterface = () => {
       async () => {
         if (cliInterface.commands.dbMigrateDown) {
           cliInterface.commands.dbMigrateDown();
+        }
+      }
+    )
+    .command(
+      'db:migrate:reset',
+      'Reset the migrations',
+      (yargs) => {},
+      async () => {
+        if (cliInterface.commands.dbMigrateReset) {
+          cliInterface.commands.dbMigrateReset();
+        }
+      }
+    )
+    .command(
+      'db:migrate:fresh',
+      'Reset the migrations and run them',
+      (yargs) => {
+        return yargs.positional('seed', {
+          describe: 'seed the database',
+          type: 'boolean',
+          default: false,
+        });
+      },
+      async (args) => {
+        if (cliInterface.commands.dbMigrateFresh) {
+          await cliInterface.commands.dbMigrateFresh();
+        }
+        if (cliInterface.commands.dbSeed && args.seed) {
+          cliInterface.commands.dbSeed();
+        }
+      }
+    )
+    .command(
+      'db:seed',
+      'Seed the database',
+      (yargs) => {},
+      async () => {
+        if (cliInterface.commands.dbSeed) {
+          cliInterface.commands.dbSeed();
         }
       }
     )
