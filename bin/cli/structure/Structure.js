@@ -10,9 +10,6 @@ class Structure {
     this.structure = JSON.parse(
       fs.readFileSync(`${__dirname}/struct.json`, 'utf8')
     );
-    this.apiStructure = JSON.parse(
-      fs.readFileSync(`${__dirname}/apiStruct.json`, 'utf8')
-    );
 
     this.path = path;
     this.loader = ['|', '/', '-', '\\'];
@@ -25,18 +22,7 @@ class Structure {
     type = 'web',
     installDeps = true
   ) {
-    if (type === 'web') {
-      this.create(this.structure, this.path, only, force, options, installDeps);
-    } else if (type === 'api') {
-      this.create(
-        this.apiStructure,
-        this.path,
-        only,
-        force,
-        options,
-        installDeps
-      );
-    }
+    this.create(this.structure, this.path, only, force, options, installDeps);
   }
 
   create(

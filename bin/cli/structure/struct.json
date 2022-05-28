@@ -86,6 +86,17 @@
             "path": "../../utils/method.js"
           }
         }
+      },
+      "jobs": {
+        "name": "jobs",
+        "type": "directory",
+        "childrens": {
+          "Job.js": {
+            "name": "Job.js",
+            "type": "file",
+            "path": "models/jobs/jobModel.js"
+          }
+        }
       }
     }
   },
@@ -98,6 +109,17 @@
         "type": "file",
         "path": "models/controllers/BaseController.js",
         "replace": { "$name": "HomeController" }
+      }
+    }
+  },
+  "jobs": {
+    "name": "jobs",
+    "type": "directory",
+    "childrens": {
+      "Job.js": {
+        "name": "ExampleJob.js",
+        "type": "file",
+        "path": "models/jobs/Job.js"
       }
     }
   },

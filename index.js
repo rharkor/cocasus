@@ -11,6 +11,7 @@ const i18nextMiddleware = require('i18next-express-middleware');
 const utils = require('./utils/method');
 const Logger = require('./framework/middlewares/Logger.middleware.js');
 const Database = require('./framework/database/Database.js');
+const Jobs = require('./framework/jobs/Jobs.js');
 
 class Cocasus {
   constructor(options = {}, app = null, debug = utils.getEnv('DEBUG', true)) {
@@ -79,6 +80,21 @@ class Cocasus {
         directory: 'resources/lang',
         enabled: true,
       },
+      jobs: {
+        list: {
+          exampleJob: {
+            name: 'exampleJob',
+            description: 'This is an example job',
+            cron: '*/1 * * * * *',
+            handler: () => {
+              console.log('Example job');
+            },
+            enabled: false,
+          },
+        },
+        directory: 'jobs',
+        enabled: true,
+      },
       models: [],
       debug,
     };
@@ -102,6 +118,8 @@ class Cocasus {
       );
     }
     this.setupLogger();
+
+    this.jobs = new Jobs(this.options.jobs, this.path);
 
     if (this.options.init.cors) {
       this.app.use(cors());
@@ -137,7 +155,7 @@ class Cocasus {
     if (this.options.init.viewEngine) {
       if (this.options.init.viewEngine === 'nunjucks') {
         const nunjucks = require('nunjucks');
-        const env = nunjucks.configure(this.options.init.views, {
+        nunjucks.configure(this.options.init.views, {
           autoescape: true,
           express: this.app,
         });
@@ -187,6 +205,9 @@ class Cocasus {
     utils.printEnvMessages();
 
     this.initDb();
+
+    // register jobs
+    this.jobs.startHandling();
 
     // Attach the routeUndefined logger
     if (this.options.logger.object) {
