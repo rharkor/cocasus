@@ -34,6 +34,7 @@ class Cocasus {
         cors: true,
         json: true,
         cookies: true,
+        controllers: 'controllers',
         static: 'resources/static',
         views: 'resources/views',
         viewEngine: 'nunjucks',

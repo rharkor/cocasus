@@ -11,6 +11,7 @@ cliInterface.commands = {
   dbMigrateUp: null,
   dbMigrateDown: null,
   makeMigration: null,
+  makeModel: null,
 };
 
 function askForName(
@@ -105,6 +106,21 @@ cliInterface.createInterface = () => {
       (argv) => {
         if (cliInterface.commands.makeController) {
           cliInterface.commands.makeController(argv);
+        }
+      }
+    )
+    .command(
+      'make:model [name]',
+      'Create a new model',
+      (yargs) => {
+        return yargs.positional('name', {
+          describe: 'name of the model',
+          type: 'string',
+        });
+      },
+      (argv) => {
+        if (cliInterface.commands.makeModel) {
+          cliInterface.commands.makeModel(argv);
         }
       }
     )
