@@ -2,6 +2,7 @@ const { Sequelize } = require('sequelize');
 const path = require('path');
 const fs = require('fs');
 const utils = require('../../utils/method');
+const colors = utils.colors;
 
 class Database {
   constructor(config, debug = utils.getEnv('DEBUG', true), path, errorHandler) {
@@ -14,7 +15,7 @@ class Database {
         dialect: config.dialect,
         logQueryParameters: debug,
         benchmark: debug,
-        logging: debug ? console.log : false,
+        logging: debug ? this.handleLogging : false,
       }
     );
 
@@ -51,13 +52,19 @@ class Database {
     }
     try {
       await this.sequelize.authenticate();
-      this.auth = true;
-      console.log('Connection has been established successfully.');
+      console.log(
+        colors.success(
+          'Connection with the database has been established successfully.'
+        )
+      );
       this.referenceAllModels();
     } catch (error) {
-      this.auth = false;
-      console.error('Unable to connect to the database:', error);
+      console.error(colors.error('Unable to connect to the database:'), error);
     }
+  }
+
+  handleLogging(message) {
+    return console.log(colors.debug(message));
   }
 
   close() {

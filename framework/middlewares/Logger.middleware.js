@@ -1,6 +1,30 @@
 const fs = require('fs');
 const { dirname } = require('path');
 const simpleLogger = require('simple-node-logger');
+const AbstractAppender = require('simple-node-logger').AbstractAppender;
+
+const colors = require('../../utils/method').colors;
+
+const basicAppender = function () {
+  ('use strict');
+  const appender = this;
+
+  const opts = {
+    typeName: 'basicAppender',
+  };
+
+  AbstractAppender.extend(this, opts);
+
+  // format and write all entry/statements
+  this.write = function (entry) {
+    let fields = appender.formatEntry(entry);
+    fields[0] = fields[0].replace(/\..../, '');
+    const message = fields.join(' ');
+    const level = entry.level.toLowerCase();
+
+    process.stdout.write(colors[level](message) + '\n');
+  };
+};
 
 class Logger {
   constructor(options, debug, viewsPath) {
@@ -23,6 +47,8 @@ class Logger {
       logFilePath: `${this.options.error.path}/${this.options.error.fileName}`,
       timestampFormat: 'YYYY-MM-DD HH:mm:ss',
     });
+    delete errorLogger.getAppenders()[0];
+    errorLogger.addAppender(new basicAppender());
     const error = (err, req, res, next) => {
       if (error) {
         errorLogger.error(err.message);
@@ -73,6 +99,8 @@ class Logger {
       logFilePath: `${this.options.access.path}/${this.options.access.fileName}`,
       timestampFormat: 'YYYY-MM-DD HH:mm:ss',
     });
+    delete accessLogger.getAppenders()[0];
+    accessLogger.addAppender(new basicAppender());
     const access = (req, res, next) => {
       const requestObject = {
         method: req.method,
@@ -93,11 +121,11 @@ class Logger {
       next();
     };
     this.loggers.error = error;
-    this.loggers.routeUndefined = routeUndefined;
     this.loggers.access = access;
+    this.loggers.routeUndefined = routeUndefined;
     this.loggersSource.error = errorLogger;
-    this.loggersSource.routeUndefined = routeUndefined;
     this.loggersSource.access = accessLogger;
+    this.loggersSource.routeUndefined = routeUndefined;
   }
 
   getLoggers() {

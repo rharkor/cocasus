@@ -9,6 +9,7 @@ const Backend = require('i18next-node-fs-backend');
 const i18nextMiddleware = require('i18next-express-middleware');
 
 const utils = require('./utils/method');
+const colors = utils.colors;
 const Logger = require('./framework/middlewares/Logger.middleware.js');
 const Database = require('./framework/database/Database.js');
 const Jobs = require('./framework/jobs/Jobs.js');
@@ -62,6 +63,7 @@ class Cocasus {
         dest: 'resources/static/styles',
         outputStyle: debug ? 'nested' : 'compressed',
         type: 'sass',
+        debug: false,
       },
       db: {
         database: utils.getEnv('DB_DATABASE', 'my-database'),
@@ -83,15 +85,15 @@ class Cocasus {
       },
       jobs: {
         list: {
-          exampleJob: {
-            name: 'exampleJob',
-            description: 'This is an example job',
-            cron: '*/1 * * * * *',
-            handler: () => {
-              console.log('Example job');
-            },
-            enabled: false,
-          },
+          // exampleJob: {
+          //   name: 'exampleJob',
+          //   description: 'This is an example job',
+          //   cron: '*/1 * * * * *',
+          //   handler: () => {
+          //     console.log('Example job');
+          //   },
+          //   enabled: false,
+          // },
         },
         directory: 'jobs',
         enabled: true,
@@ -170,7 +172,7 @@ class Cocasus {
       sassMiddleware({
         src: path.join(this.path, this.options.sass.src),
         dest: path.join(this.path, this.options.sass.dest),
-        debug: this.options.debug,
+        debug: this.options.sass.debug,
         outputStyle: this.options.sass.outputStyle,
         indentedSyntax: this.options.sass.type === 'sass',
         prefix: '/styles',
@@ -201,7 +203,9 @@ class Cocasus {
   ) {
     if (this.options.debug) {
       console.log(
-        "Warning you are running in debug mode, don't use it in production"
+        colors.warning(
+          "Warning you are running in debug mode, don't use it in production"
+        )
       );
     }
 
@@ -226,7 +230,7 @@ class Cocasus {
         const message = this.options.listening.message
           .replace('$host', host)
           .replace('$port', port);
-        console.log(message);
+        console.log(colors.success(message), '\n');
       }
     };
     if (!host) {
@@ -237,7 +241,7 @@ class Cocasus {
     }
   }
 
-  route(method, path, callback) {
+  route(method, path, callback, name = '', description = '') {
     const callbackGuarded = (req, res, next) => {
       try {
         callback(req, res, next);
@@ -246,7 +250,7 @@ class Cocasus {
       }
     };
     this.app[method](path, callbackGuarded);
-    this.routes.push({ method, path });
+    this.routes.push({ method, path, name, description });
   }
 
   getRoutes() {

@@ -25,15 +25,21 @@ coca.route('get', '/users', (req, res) => {
   });
 });
 
-coca.route('get', '/users/:id', (req, res) => {
-  coca.models.user.findByPk(req.params.id).then((user) => {
-    if (user && user.error) {
-      coca.errorHandler(user.error, req, res);
-      return;
-    }
-    res.send(user);
-  });
-});
+coca.route(
+  'get',
+  '/users/:id',
+  (req, res) => {
+    coca.models.user.findByPk(req.params.id).then((user) => {
+      if (user && user.error) {
+        coca.errorHandler(user.error, req, res);
+        return;
+      }
+      res.send(user);
+    });
+  },
+  'Retreive user',
+  'Retreive user by id (handle it manually)'
+);
 
 coca.route('get', '/home', HomeController.call('index'));
 

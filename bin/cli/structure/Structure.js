@@ -94,8 +94,8 @@ class Structure {
           }
           // Check if the file already exists
           if (!fs.existsSync(path.join(absPath, value.name)) || force) {
-            console.log(`Creating ${value.name}`);
             fs.writeFileSync(path.join(absPath, value.name), content, 'utf8');
+            console.log(colors.success(`Creating ${value.name}`));
           }
         } else if (
           value.type === 'command' &&

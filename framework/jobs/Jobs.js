@@ -1,6 +1,9 @@
 const schedule = require('node-schedule');
 const fs = require('fs');
 const path = require('path');
+const { table } = require('table');
+
+const colors = require('../../utils/method').colors;
 
 class Jobs {
   constructor(options, path) {
@@ -20,9 +23,8 @@ class Jobs {
         const jobFiles = fs.readdirSync(path.join(localPath, jobDirectory));
         jobFiles.forEach((file) => {
           const job = require(path.join(localPath, jobDirectory, file));
-          if (job.enabled) {
-            this.registerJob(job);
-          }
+          job.location = path.join(localPath, jobDirectory, file);
+          this.registerJob(job);
         });
       }
     }
@@ -32,9 +34,8 @@ class Jobs {
     if (this.options.enabled) {
       Object.keys(this.options.list).forEach((jobName) => {
         const job = this.options.list[jobName];
-        if (job.enabled) {
-          this.registerJob(job);
-        }
+        job.location = 'app config (options)';
+        this.registerJob(job);
       });
     }
   }
@@ -46,26 +47,44 @@ class Jobs {
 
   startHandling() {
     this.jobs.forEach((job) => {
-      // Handle the job
-      schedule.scheduleJob(job.cron, job.handler);
+      if (job.enabled) {
+        // Handle the job
+        schedule.scheduleJob(job.cron, job.handler);
+      }
     });
   }
 
   printJobs() {
     // Pretty print all jobs
-    console.log('Jobs:');
-    this.jobs.forEach((job) => {
-      let text = '';
-      text += `${job.cron}  `;
-      if (job.name) {
-        text += `${job.name}  `;
-      }
-      if (job.description) {
-        text += `${job.description}  `;
-      }
-      text += job.enabled;
-      console.log(text);
-    });
+    const data = [
+      [
+        colors.info('Cron'),
+        colors.info('Name'),
+        colors.info('Description'),
+        colors.info('Location'),
+        colors.info('Enabled'),
+      ],
+      ...this.jobs.map((job) => {
+        return [
+          job.cron ? job.cron : '-',
+          job.name ? job.name : '-',
+          job.description ? job.description : '-',
+          job.location ? job.location : '-',
+          job.enabled ? colors.success('enabled') : colors.error('disabled'),
+        ];
+      }),
+    ];
+    const config = {
+      header: {
+        alignment: 'center',
+        content: 'Jobs',
+      },
+      columnDefault: {
+        paddingLeft: 2,
+        paddingRight: 2,
+      },
+    };
+    console.log(table(data, config));
   }
 }
 
