@@ -5,8 +5,8 @@ const HomeController = require('./controllers/HomeController');
 const coca = new cocasus({
   logger: {
     error: {
-      exceptionTemplate: 'errors/500.jinja',
-      routeUndefinedTemplate: 'errors/404.jinja',
+      exceptionTemplate: 'errors/500.html',
+      routeUndefinedTemplate: 'errors/404.html',
     },
   },
 });
