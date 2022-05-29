@@ -10,9 +10,6 @@ class Structure {
     this.structure = JSON.parse(
       fs.readFileSync(`${__dirname}/struct.json`, 'utf8')
     );
-    this.apiStructure = JSON.parse(
-      fs.readFileSync(`${__dirname}/apiStruct.json`, 'utf8')
-    );
 
     this.path = path;
     this.loader = ['|', '/', '-', '\\'];
@@ -25,28 +22,10 @@ class Structure {
     type = 'web',
     installDeps = true
   ) {
-    if (type === 'web') {
-      this.#create(
-        this.structure,
-        this.path,
-        only,
-        force,
-        options,
-        installDeps
-      );
-    } else if (type === 'api') {
-      this.#create(
-        this.apiStructure,
-        this.path,
-        only,
-        force,
-        options,
-        installDeps
-      );
-    }
+    this.create(this.structure, this.path, only, force, options, installDeps);
   }
 
-  #create(
+  create(
     object,
     absPath = this.path,
     only = null,
@@ -80,7 +59,7 @@ class Structure {
             }
           }
           if (value.childrens) {
-            this.#create(
+            this.create(
               value.childrens,
               path.join(absPath, value.name),
               only,
@@ -115,8 +94,8 @@ class Structure {
           }
           // Check if the file already exists
           if (!fs.existsSync(path.join(absPath, value.name)) || force) {
-            console.log(`Creating ${value.name}`);
             fs.writeFileSync(path.join(absPath, value.name), content, 'utf8');
+            console.log(colors.success(`Creating ${value.name}`));
           }
         } else if (
           value.type === 'command' &&

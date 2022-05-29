@@ -1,0 +1,10 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+    <p>Une erreur est survenue</p>
+    {% if debug %}
+        {{ error }}
+    {% else %}
+        Ressayez plus tard
+    {% endif %}
+{% endblock %}

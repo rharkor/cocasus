@@ -1,10 +1,4 @@
 {
-  "package.json": {
-    "name": "package.json",
-    "type": "file",
-    "path": "models/basic/package.json",
-    "replace": { "$name": "$name" }
-  },
   "install": {
     "name": "npm i",
     "type": "command"
@@ -92,6 +86,17 @@
             "path": "../../utils/method.js"
           }
         }
+      },
+      "jobs": {
+        "name": "jobs",
+        "type": "directory",
+        "childrens": {
+          "Job.js": {
+            "name": "Job.js",
+            "type": "file",
+            "path": "models/jobs/jobModel.js"
+          }
+        }
       }
     }
   },
@@ -104,6 +109,17 @@
         "type": "file",
         "path": "models/controllers/BaseController.js",
         "replace": { "$name": "HomeController" }
+      }
+    }
+  },
+  "jobs": {
+    "name": "jobs",
+    "type": "directory",
+    "childrens": {
+      "Job.js": {
+        "name": "ExampleJob.js",
+        "type": "file",
+        "path": "models/jobs/Job.js"
       }
     }
   },
@@ -136,7 +152,13 @@
       "seeders": {
         "name": "seeders",
         "type": "directory",
-        "childrens": {}
+        "childrens": {
+          "userSeeder.js": {
+            "name": "userSeeder.js",
+            "type": "file",
+            "path": "models/database/seeder.js"
+          }
+        }
       }
     }
   },
@@ -153,6 +175,22 @@
             "type": "file",
             "path": "models/views/base.jinja",
             "replace": { "$name": "$name" }
+          },
+          "errors": {
+            "name": "errors",
+            "type": "directory",
+            "childrens": {
+              "404.jinja": {
+                "name": "404.jinja",
+                "type": "file",
+                "path": "models/views/404.jinja"
+              },
+              "500.jinja": {
+                "name": "500.jinja",
+                "type": "file",
+                "path": "models/views/500.jinja"
+              }
+            }
           }
         }
       },
@@ -191,6 +229,22 @@
                 "path": "models/javascripts/index.js"
               }
             }
+          }
+        }
+      },
+      "lang": {
+        "name": "lang",
+        "type": "directory",
+        "childrens": {
+          "en.json": {
+            "name": "en.json",
+            "type": "file",
+            "path": "models/lang/en.json"
+          },
+          "fr.json": {
+            "name": "fr.json",
+            "type": "file",
+            "path": "models/lang/fr.json"
           }
         }
       }

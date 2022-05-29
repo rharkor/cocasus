@@ -1,12 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const sassMiddleware = require('node-sass-middleware');
-const { dirname } = require('path');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const fs = require('fs');
+const i18n = require('i18next');
+const Backend = require('i18next-node-fs-backend');
+const i18nextMiddleware = require('i18next-express-middleware');
 
 const utils = require('./utils/method');
+const colors = utils.colors;
 const Logger = require('./framework/middlewares/Logger.middleware.js');
 const Database = require('./framework/database/Database.js');
+const Jobs = require('./framework/jobs/Jobs.js');
 
 class Cocasus {
   constructor(options = {}, app = null, debug = utils.getEnv('DEBUG', true)) {
@@ -29,6 +35,8 @@ class Cocasus {
       init: {
         cors: true,
         json: true,
+        cookies: true,
+        controllers: 'controllers',
         static: 'resources/static',
         views: 'resources/views',
         viewEngine: 'nunjucks',
@@ -39,6 +47,9 @@ class Cocasus {
           fileName: 'error.log',
           message: 'Something went wrong..',
           exceptionCode: utils.getEnv('EXCEPTION_CODE', 500),
+          exceptionTemplate: null,
+          routeUndefinedCode: utils.getEnv('ROUTE_UNDEFINED_CODE', 404),
+          routeUndefinedTemplate: null,
         },
         access: {
           path: './log',
@@ -52,6 +63,7 @@ class Cocasus {
         dest: 'resources/static/styles',
         outputStyle: debug ? 'nested' : 'compressed',
         type: 'sass',
+        debug: false,
       },
       db: {
         database: utils.getEnv('DB_DATABASE', 'my-database'),
@@ -61,7 +73,30 @@ class Cocasus {
         dialect: utils.getEnv('DB_DIALECT', 'mysql'),
         models: 'database/models',
         migrations: 'database/migrations',
+        seeders: 'database/seeders',
         enabled: true, // Set it to false if you don't want to use a database
+      },
+      lang: {
+        default: 'en',
+        queryParameter: 'lang',
+        cookie: 'lang',
+        directory: 'resources/lang',
+        enabled: true,
+      },
+      jobs: {
+        list: {
+          // exampleJob: {
+          //   name: 'exampleJob',
+          //   description: 'This is an example job',
+          //   cron: '*/1 * * * * *',
+          //   handler: () => {
+          //     console.log('Example job');
+          //   },
+          //   enabled: false,
+          // },
+        },
+        directory: 'jobs',
+        enabled: true,
       },
       models: [],
       debug,
@@ -81,22 +116,46 @@ class Cocasus {
     if (this.options.logger.enabled && !this.options.logger.object) {
       this.options.logger.object = new Logger(
         this.options.logger,
-        this.options.debug
+        this.options.debug,
+        this.options.init.views
       );
+    }
+    this.setupLogger();
+
+    this.jobs = new Jobs(this.options.jobs, this.path);
+
+    this.initDb();
+
+    if (this.options.init.cors) {
+      this.app.use(cors());
+    }
+    if (this.options.init.json) {
+      this.app.use(express.json());
+    }
+    if (this.options.init.cookies) {
+      this.app.use(cookieParser());
     }
 
-    // Init the db connection
-    if (this.options.db.enabled) {
-      this.db = new Database(
-        this.options.db,
-        this.options.debug,
-        this.path,
-        this.errorHandler.bind(this)
-      );
-      this.db.referenceAllModels();
-      // Simplify the access to the models
-      this.models = this.db.models;
+    if (this.options.lang.enabled) {
+      // Setup lang
+      const locales = fs
+        .readdirSync(path.join(this.path, this.options.lang.directory))
+        .map((file) => file.split('.')[0]);
+      i18n
+        .use(Backend)
+        .use(i18nextMiddleware.LanguageDetector)
+        .init({
+          backend: {
+            loadPath:
+              path.join(this.path, this.options.lang.directory) +
+              '/{{lng}}.json',
+          },
+          fallbackLng: ['en'],
+          preload: locales,
+        });
+      this.app.use(i18nextMiddleware.handle(i18n));
     }
+
     this.app.set('views', path.join(this.path, this.options.init.views));
     if (this.options.init.viewEngine) {
       if (this.options.init.viewEngine === 'nunjucks') {
@@ -113,19 +172,12 @@ class Cocasus {
       sassMiddleware({
         src: path.join(this.path, this.options.sass.src),
         dest: path.join(this.path, this.options.sass.dest),
-        debug: this.options.debug,
+        debug: this.options.sass.debug,
         outputStyle: this.options.sass.outputStyle,
         indentedSyntax: this.options.sass.type === 'sass',
         prefix: '/styles',
       })
     );
-
-    if (this.options.init.cors) {
-      this.app.use(cors());
-    }
-    if (this.options.init.json) {
-      this.app.use(express.json());
-    }
 
     // Setup the file directory
     this.app.use(
@@ -137,7 +189,10 @@ class Cocasus {
   setupLogger() {
     if (this.options.logger.object) {
       this.options.logger.object.getLoggers().forEach((logger) => {
-        this.app.use(logger);
+        // Test if logger function name is routeUndefined
+        if (logger.name !== 'routeUndefined') {
+          this.app.use(logger);
+        }
       });
     }
   }
@@ -148,17 +203,34 @@ class Cocasus {
   ) {
     if (this.options.debug) {
       console.log(
-        "Warning you are running in debug mode, don't use it in production"
+        colors.warning(
+          "Warning you are running in debug mode, don't use it in production"
+        )
       );
     }
-    this.setupLogger();
+
+    utils.printEnvMessages();
+
+    this.authDb();
+
+    // register jobs
+    this.jobs.startHandling();
+
+    // Attach the routeUndefined logger
+    if (this.options.logger.object) {
+      this.options.logger.object.getLoggers().forEach((logger) => {
+        if (logger.name === 'routeUndefined') {
+          this.app.use(logger);
+        }
+      });
+    }
 
     const callbackRun = () => {
       if (this.options.listening.verbose) {
         const message = this.options.listening.message
           .replace('$host', host)
           .replace('$port', port);
-        console.log(message);
+        console.log(colors.success(message), '\n');
       }
     };
     if (!host) {
@@ -169,7 +241,7 @@ class Cocasus {
     }
   }
 
-  register(method, path, callback) {
+  route(method, path, callback, name = '', description = '') {
     const callbackGuarded = (req, res, next) => {
       try {
         callback(req, res, next);
@@ -178,7 +250,7 @@ class Cocasus {
       }
     };
     this.app[method](path, callbackGuarded);
-    this.routes.push({ method, path });
+    this.routes.push({ method, path, name, description });
   }
 
   getRoutes() {
@@ -186,20 +258,31 @@ class Cocasus {
   }
 
   errorHandler(e, req, res, next) {
-    if (this.options.debug) {
-      console.error(e);
-      this.options.logger.object.getSourceLoggers().error.error(e.message);
-      if (res) {
-        res.status(this.options.logger.exceptionCode).send(e);
+    this.options.logger.object.getLoggers().find((logger) => {
+      if (logger.name === 'error') {
+        logger(e, req, res, next);
       }
-    } else {
-      console.error(e);
-      this.options.logger.object.getSourceLoggers().error.error(e.message);
-      if (res) {
-        res
-          .status(this.options.logger.exceptionCode)
-          .send('Something went wrong');
-      }
+    });
+  }
+
+  initDb() {
+    // Init the db connection
+    if (this.options.db.enabled) {
+      this.db = new Database(
+        this.options.db,
+        this.options.debug,
+        this.path,
+        this.errorHandler.bind(this)
+      );
+      this.db.referenceAllModels();
+      // Simplify the access to the models
+      this.models = this.db.models;
+    }
+  }
+
+  authDb() {
+    if (this.options.db.enabled) {
+      this.db.auth();
     }
   }
 }

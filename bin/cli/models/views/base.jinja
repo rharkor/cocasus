@@ -13,18 +13,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;600;800&display=swap" rel="stylesheet">
 
     <!-- Include css -->
-    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="/styles/style.css">
 
     <!-- Include js -->
-    <script src="javascripts/index.js"></script>
+    <script src="/javascripts/index.js"></script>
 </head>
 
 <body>
     <div class="container">
-        Base
-        <div class="date">
-            {{ date }}
-        </div>
+        {% block content %}
+            {{ t('home.title') }} - {{ t(description) }}
+            <div class="date">
+                {{ date }}
+            </div>
+        {% endblock %}
     </div>
 </body>
 

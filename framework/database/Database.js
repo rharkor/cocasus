@@ -1,8 +1,8 @@
 const { Sequelize } = require('sequelize');
-const SequelizeModel = require('sequelize/lib/model');
 const path = require('path');
 const fs = require('fs');
 const utils = require('../../utils/method');
+const colors = utils.colors;
 
 class Database {
   constructor(config, debug = utils.getEnv('DEBUG', true), path, errorHandler) {
@@ -15,23 +15,31 @@ class Database {
         dialect: config.dialect,
         logQueryParameters: debug,
         benchmark: debug,
-        logging: debug ? console.log : false,
+        logging: debug ? this.handleLogging : false,
       }
     );
 
-    const orgFindAll = SequelizeModel.findAll;
-    SequelizeModel.findAll = function () {
-      return orgFindAll.apply(this, arguments).catch((err) => {
-        errorHandler(err);
-      });
+    this.defaultQuery = async function () {
+      try {
+        return await Sequelize.prototype.query.apply(this, arguments);
+      } catch (err) {
+        throw err;
+      }
+    };
+    this.sequelize.query = async function () {
+      try {
+        return await Sequelize.prototype.query.apply(this, arguments);
+      } catch (err) {
+        // handle it
+        err.error = err.original;
+        return err;
+      }
     };
 
     this.migrationsPath = config.migrations;
     this.modelsPath = config.models;
     this.models = this.sequelize.models;
     this.path = path;
-
-    this.auth();
   }
 
   async auth() {
@@ -44,13 +52,19 @@ class Database {
     }
     try {
       await this.sequelize.authenticate();
-      this.auth = true;
-      console.log('Connection has been established successfully.');
+      console.log(
+        colors.success(
+          'Connection with the database has been established successfully.'
+        )
+      );
       this.referenceAllModels();
     } catch (error) {
-      this.auth = false;
-      console.error('Unable to connect to the database:', error);
+      console.error(colors.error('Unable to connect to the database:'), error);
     }
+  }
+
+  handleLogging(message) {
+    return console.log(colors.debug(message));
   }
 
   close() {

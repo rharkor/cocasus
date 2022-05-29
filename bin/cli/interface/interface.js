@@ -8,9 +8,15 @@ cliInterface.commands = {
   makeController: null,
   init: null,
   getRoutes: null,
+  getJobs: null,
+  makeMigration: null,
+  makeModel: null,
+  makeJob: null,
   dbMigrateUp: null,
   dbMigrateDown: null,
-  makeMigration: null,
+  dbMigrateReset: null,
+  dbMigrateFresh: null,
+  dbSeed: null,
 };
 
 function askForName(
@@ -49,12 +55,6 @@ cliInterface.createInterface = () => {
             alias: 'f',
             type: 'boolean',
           })
-          .positional('type', {
-            describe: 'The type of utilisation [web|api]',
-            alias: 't',
-            type: 'string',
-            default: 'web',
-          })
           .positional('name', {
             describe: 'The name of the project',
             alias: 'n',
@@ -92,6 +92,16 @@ cliInterface.createInterface = () => {
         }
       }
     )
+    .command(
+      'jobs',
+      'Get the jobs of the app',
+      (yargs) => {},
+      () => {
+        if (cliInterface.commands.getJobs) {
+          cliInterface.commands.getJobs();
+        }
+      }
+    )
     // MAKE:
     .command(
       'make:controller [name]',
@@ -102,25 +112,65 @@ cliInterface.createInterface = () => {
           type: 'string',
         });
       },
-      (argv) => {
+      async (argv) => {
+        const name =
+          argv.name ||
+          (await askForName(null, 'What is the name of the controller?'));
         if (cliInterface.commands.makeController) {
-          cliInterface.commands.makeController(argv);
+          cliInterface.commands.makeController(name);
+        }
+      }
+    )
+    .command(
+      'make:model [name]',
+      'Create a new model',
+      (yargs) => {
+        return yargs.positional('name', {
+          describe: 'name of the model',
+          type: 'string',
+        });
+      },
+      async (argv) => {
+        const name =
+          argv.name ||
+          (await askForName(null, 'What is the name of the model?'));
+        if (cliInterface.commands.makeModel) {
+          cliInterface.commands.makeModel(name);
         }
       }
     )
     .command(
       'make:migration [name]',
       'Create a new migration',
-      (yargs) => {},
+      (yargs) => {
+        return yargs.positional('name', {
+          describe: 'name of the migration',
+          type: 'string',
+        });
+      },
       async (argv) => {
         const name =
           argv.name ||
-          (await askForName(
-            'create_table',
-            'What is the name of the migration?'
-          ));
+          (await askForName(null, 'What is the name of the migration?'));
         if (cliInterface.commands.makeMigration) {
           cliInterface.commands.makeMigration(name);
+        }
+      }
+    )
+    .command(
+      'make:job [name]',
+      'Create a new job',
+      (yargs) => {
+        return yargs.positional('name', {
+          describe: 'name of the job',
+          type: 'string',
+        });
+      },
+      async (argv) => {
+        const name =
+          argv.name || (await askForName(null, 'What is the name of the job?'));
+        if (cliInterface.commands.makeJob) {
+          cliInterface.commands.makeJob(name);
         }
       }
     )
@@ -145,6 +195,47 @@ cliInterface.createInterface = () => {
         }
       }
     )
+    .command(
+      'db:migrate:reset',
+      'Reset the migrations',
+      (yargs) => {},
+      async () => {
+        if (cliInterface.commands.dbMigrateReset) {
+          cliInterface.commands.dbMigrateReset();
+        }
+      }
+    )
+    .command(
+      'db:migrate:fresh',
+      'Reset the migrations and run them',
+      (yargs) => {
+        return yargs.positional('seed', {
+          describe: 'seed the database',
+          type: 'boolean',
+          default: false,
+        });
+      },
+      async (args) => {
+        if (cliInterface.commands.dbMigrateFresh) {
+          await cliInterface.commands.dbMigrateFresh();
+        }
+        if (cliInterface.commands.dbSeed && args.seed) {
+          cliInterface.commands.dbSeed();
+        }
+      }
+    )
+    .command(
+      'db:seed',
+      'Seed the database',
+      (yargs) => {},
+      async () => {
+        if (cliInterface.commands.dbSeed) {
+          cliInterface.commands.dbSeed();
+        }
+      }
+    )
+    .demandCommand(1)
+    .strict()
     .showHelpOnFail(true)
     .parse();
 };
