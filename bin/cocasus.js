@@ -5,6 +5,7 @@ const path = require('path');
 const { table } = require('table');
 
 const utils = require('../utils/method');
+const colors = utils.colors;
 
 const cliInterface = require('./cli/interface/interface');
 const Database = require('./cli/database/Database');
@@ -149,7 +150,7 @@ class Cli {
       'controllers',
       path.join('vendor', 'http', 'controllers', 'Controller.js'),
       path.join('vendor', 'http', 'requests', 'Request.js'),
-      path.join('resources', 'views', 'base.jinja'),
+      path.join('resources', 'views', 'base.html'),
     ]);
 
     // Get the file content

@@ -1,12 +1,13 @@
 {
-  "install": {
-    "name": "npm i",
-    "type": "command"
-  },
   "config.js": {
     "name": "config.js",
     "type": "file",
     "path": "models/basic/config.js"
+  },
+  "nodemon.json": {
+    "name": "nodemon.json",
+    "type": "file",
+    "path": "models/basic/nodemon.json"
   },
   "app.js": {
     "name": "app.js",
@@ -170,25 +171,25 @@
         "name": "views",
         "type": "directory",
         "childrens": {
-          "base.jinja": {
-            "name": "base.jinja",
+          "base.html": {
+            "name": "base.html",
             "type": "file",
-            "path": "models/views/base.jinja",
+            "path": "models/views/base.html",
             "replace": { "$name": "$name" }
           },
           "errors": {
             "name": "errors",
             "type": "directory",
             "childrens": {
-              "404.jinja": {
-                "name": "404.jinja",
+              "404.html": {
+                "name": "404.html",
                 "type": "file",
-                "path": "models/views/404.jinja"
+                "path": "models/views/404.html"
               },
-              "500.jinja": {
-                "name": "500.jinja",
+              "500.html": {
+                "name": "500.html",
                 "type": "file",
-                "path": "models/views/500.jinja"
+                "path": "models/views/500.html"
               }
             }
           }
