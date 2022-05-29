@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { table } = require('table');
 
 const utils = require('../utils/method');
 
@@ -39,11 +40,31 @@ class Cli {
     if (utils.getApp(this.path)) {
       const routes = utils.getApp(this.path).getRoutes();
       if (routes) {
-        routes.forEach((route) => {
-          console.log(
-            `Method '${route.method.toUpperCase()}' | Path '${route.path}'`
-          );
-        });
+        const data = [
+          [
+            utils.colors.info('Method: '),
+            utils.colors.info('Path: '),
+            utils.colors.info('Name: '),
+            utils.colors.info('Description: '),
+          ],
+          ...routes.map((route) => [
+            route.method,
+            route.path,
+            route.name,
+            route.description,
+          ]),
+        ];
+        const config = {
+          header: {
+            alignment: 'center',
+            content: 'Routes',
+          },
+          columnDefault: {
+            paddingLeft: 2,
+            paddingRight: 2,
+          },
+        };
+        console.log(table(data, config));
       }
     }
   }
@@ -151,7 +172,7 @@ class Cli {
       'utf8'
     );
 
-    console.info(`Made controller ${baseName}`);
+    console.info(colors.success(`Made controller ${baseName}`));
   }
 
   makeModel(baseName) {
@@ -192,7 +213,7 @@ class Cli {
       'utf8'
     );
 
-    console.info(`Made model ${baseName}`);
+    console.info(colors.success(`Made model ${baseName}`));
   }
 
   async init(argv, name) {
@@ -252,7 +273,7 @@ class Cli {
     // Create the file
     fs.writeFileSync(path.join(this.path, jobsPath, name + '.js'), job, 'utf8');
 
-    console.info(`Made job ${baseName}`);
+    console.info(colors.success(`Made job ${baseName}`));
   }
 }
 

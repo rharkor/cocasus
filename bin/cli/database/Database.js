@@ -3,6 +3,7 @@ const { Umzug, SequelizeStorage } = require('umzug');
 const path = require('path');
 const fs = require('fs');
 const utils = require('../../../utils/method');
+const colors = utils.colors;
 
 class Database {
   constructor(config, root, debug = utils.getEnv('DEBUG', true)) {
@@ -15,7 +16,7 @@ class Database {
         dialect: config.dialect,
         logQueryParameters: debug,
         benchmark: debug,
-        logging: debug ? console.log : false,
+        logging: debug ? this.handleLogging : false,
       }
     );
     this.root = root;
@@ -33,6 +34,10 @@ class Database {
     this.migrationsPath = config.migrations;
     this.modelsPath = config.models;
     this.models = this.sequelize.models;
+  }
+
+  handleLogging(message) {
+    return console.log(colors.debug(message));
   }
 
   close() {
@@ -68,7 +73,7 @@ class Database {
       fs.readFileSync(`${__dirname}/../models/database/migration.js`)
     );
     if (this.debug) {
-      console.log('Migration created successfully.');
+      console.log(colors.success('Migration created successfully.'));
     }
   }
 

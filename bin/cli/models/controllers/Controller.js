@@ -45,30 +45,40 @@ class Controller {
         enabled: true,
         method: 'get',
         path: '/',
+        name: 'Search',
+        description: `Search by query params in ${model.name}`,
         handler: null,
       },
       create: {
         enabled: true,
         method: 'put',
         path: '/',
+        name: 'Create',
+        description: `Create a new ${model.name}`,
         handler: null,
       },
       read: {
         enabled: true,
         method: 'get',
         path: '/:id',
+        name: 'Read',
+        description: `Read a ${model.name}`,
         handler: null,
       },
       update: {
         enabled: true,
         method: 'put',
         path: '/:id',
+        name: 'Update',
+        description: `Update a ${model.name}`,
         handler: null,
       },
       delete: {
         enabled: true,
         method: 'delete',
         path: '/:id',
+        name: 'Delete',
+        description: `Delete a ${model.name}`,
         handler: null,
       },
     }
@@ -96,7 +106,9 @@ class Controller {
                 }
                 res.send(results);
               });
-            }
+            },
+        options.search.name,
+        options.search.description
       );
     }
 
@@ -121,7 +133,9 @@ class Controller {
                 }
                 res.send(results);
               });
-            }
+            },
+        options.create.name,
+        options.create.description
       );
     }
 
@@ -146,7 +160,9 @@ class Controller {
                 }
                 res.send(results);
               });
-            }
+            },
+        options.read.name,
+        options.read.description
       );
     }
 
@@ -172,7 +188,9 @@ class Controller {
                 }
                 res.send(results);
               });
-            }
+            },
+        options.update.name,
+        options.update.description
       );
     }
 
@@ -197,7 +215,9 @@ class Controller {
                 }
                 res.send({ success: true });
               });
-            }
+            },
+        options.delete.name,
+        options.delete.description
       );
     }
   }
