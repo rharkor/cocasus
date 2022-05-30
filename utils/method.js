@@ -30,7 +30,7 @@ utils.colors = {
   debug: chalk.hex('#008080'), // Teal color
 };
 
-const envMessages = [];
+let envMessages = [];
 
 utils.getEnv = (key, defaultValue) => {
   const debug = process.env.DEBUG || true;
@@ -45,8 +45,25 @@ utils.getEnv = (key, defaultValue) => {
   return defaultValue;
 };
 
-utils.printEnvMessages = () => {
+utils.printEnvMessages = (exclude) => {
   if (envMessages.length > 0) {
+    exclude.forEach((element) => {
+      envMessages = envMessages.filter((message) => {
+        console.log(
+          message[0]
+            .replace(/.*;0m/, '')
+            .startsWith(element.toUpperCase() + '_'),
+          element.toUpperCase()
+        );
+        if (
+          !message[0]
+            .replace(/.*;0m/, '')
+            .startsWith(element.toUpperCase() + '_')
+        )
+          return message;
+      });
+    });
+
     const data = [
       [utils.colors.info('Key: '), utils.colors.info('Default Value: ')],
       ...envMessages,

@@ -39,7 +39,6 @@
     "index.js"
   ],
   "dependencies": {
-    "@prisma/client": "^3.14.0",
     "chalk": "^4.1.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

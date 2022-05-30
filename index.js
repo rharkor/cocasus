@@ -46,9 +46,9 @@ class Cocasus {
           path: './log',
           fileName: 'error.log',
           message: 'Something went wrong..',
-          exceptionCode: utils.getEnv('EXCEPTION_CODE', 500),
+          exceptionCode: utils.getEnv('LOGGER_EXCEPTION_CODE', 500),
           exceptionTemplate: null,
-          routeUndefinedCode: utils.getEnv('ROUTE_UNDEFINED_CODE', 404),
+          routeUndefinedCode: utils.getEnv('LOGGER_ROUTE_UNDEFINED_CODE', 404),
           routeUndefinedTemplate: null,
         },
         access: {
@@ -160,13 +160,25 @@ class Cocasus {
     if (this.options.init.viewEngine) {
       if (this.options.init.viewEngine === 'nunjucks') {
         const nunjucks = require('nunjucks');
-        nunjucks.configure(this.options.init.views, {
+        const env = nunjucks.configure(this.options.init.views, {
           autoescape: true,
           express: this.app,
         });
+        this.engine = {};
+        this.engine.env = env;
         this.app.engine('jinja', nunjucks.render);
+        this.app.set('engine', env);
         this.app.set('view engine', 'jinja');
       }
+      this.app.use((req, res, next) => {
+        const engine = res.app.get('engine');
+        const config = req.app.get('config');
+
+        engine.addGlobal('config', config);
+        engine.addGlobal('request', req);
+
+        next();
+      });
     }
     this.app.use(
       sassMiddleware({
@@ -209,7 +221,14 @@ class Cocasus {
       );
     }
 
-    utils.printEnvMessages();
+    const exclusions = [];
+    if (!this.options.logger.enabled) {
+      exclusions.push('logger');
+    }
+    if (!this.options.db.enabled) {
+      exclusions.push('db');
+    }
+    utils.printEnvMessages(exclusions);
 
     this.authDb();
 

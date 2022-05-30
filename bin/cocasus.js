@@ -155,7 +155,7 @@ class Cli {
 
     // Get the file content
     let controllerContent = fs.readFileSync(
-      `${__dirname}/cli/models/controllers/BaseController.js`,
+      `${__dirname}/cli/models/controllers/TemplateController.js`,
       'utf8'
     );
     // Replace all $name by the name of the controller
