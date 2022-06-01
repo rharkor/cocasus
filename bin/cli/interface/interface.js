@@ -12,6 +12,7 @@ cliInterface.commands = {
   makeMigration: null,
   makeModel: null,
   makeJob: null,
+  makeScrud: null,
   dbMigrateUp: null,
   dbMigrateDown: null,
   dbMigrateReset: null,
@@ -65,13 +66,6 @@ cliInterface.createInterface = () => {
             alias: 'r',
             type: 'string',
             default: '.',
-          })
-          .positional('deps', {
-            describe:
-              'Install automatically or not the dependencies of the project',
-            alias: 'd',
-            type: 'boolean',
-            default: true,
           });
       },
       async (argv) => {
@@ -171,6 +165,66 @@ cliInterface.createInterface = () => {
           argv.name || (await askForName(null, 'What is the name of the job?'));
         if (cliInterface.commands.makeJob) {
           cliInterface.commands.makeJob(name);
+        }
+      }
+    )
+    .command(
+      'make:scrud [controller] [model]',
+      'Insert scrud routes in a controller',
+      (yargs) => {
+        return yargs
+          .positional('controller', {
+            describe: 'name of the controller',
+            type: 'string',
+          })
+          .positional('model', {
+            describe: 'name of the model',
+            type: 'string',
+          });
+      },
+      async (argv) => {
+        const name =
+          argv.controller ||
+          (await askForName(null, 'What is the name of the controller?'));
+        const model =
+          argv.model ||
+          (await askForName(
+            null,
+            'What is the name of the model (name declared in the model file)?'
+          ));
+
+        if (cliInterface.commands.makeScrud) {
+          cliInterface.commands.makeScrud(name, model);
+        }
+      }
+    )
+    .command(
+      'make:crud [controller] [model]',
+      'Insert scrud routes in a controller',
+      (yargs) => {
+        return yargs
+          .positional('controller', {
+            describe: 'name of the controller',
+            type: 'string',
+          })
+          .positional('model', {
+            describe: 'name of the model',
+            type: 'string',
+          });
+      },
+      async (argv) => {
+        const name =
+          argv.controller ||
+          (await askForName(null, 'What is the name of the controller?'));
+        const model =
+          argv.model ||
+          (await askForName(
+            null,
+            'What is the name of the model (name declared in the model file)?'
+          ));
+
+        if (cliInterface.commands.makeScrud) {
+          cliInterface.commands.makeScrud(name, model);
         }
       }
     )

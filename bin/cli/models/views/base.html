@@ -5,12 +5,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cocasus App</title>
+    <title>{% block title %}Cocasus App{% endblock %}</title>
 
     <!-- Include fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;600;800&display=swap"
+        rel="stylesheet">
 
     <!-- Include css -->
     <link rel="stylesheet" href="/styles/style.css">
@@ -22,10 +23,10 @@
 <body>
     <div class="container">
         {% block content %}
-            {{ t('home.title') }} - {{ t(description) }}
-            <div class="date">
-                {{ date }}
-            </div>
+        {{ t('home.title') }} - {{ t(description) }}
+        <div class="date">
+            {{ date }}
+        </div>
         {% endblock %}
     </div>
 </body>

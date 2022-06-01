@@ -5,6 +5,7 @@ const path = require('path');
 const { table } = require('table');
 
 const utils = require('../utils/method');
+const colors = utils.colors;
 
 const cliInterface = require('./cli/interface/interface');
 const Database = require('./cli/database/Database');
@@ -27,6 +28,7 @@ class Cli {
     cliInterface.commands.makeMigration = this.makeMigration.bind(this);
     cliInterface.commands.makeModel = this.makeModel.bind(this);
     cliInterface.commands.makeJob = this.makeJob.bind(this);
+    cliInterface.commands.makeScrud = this.makeScrud.bind(this);
     cliInterface.commands.dbMigrateUp = this.migrateUp.bind(this);
     cliInterface.commands.dbMigrateDown = this.migrateDown.bind(this);
     cliInterface.commands.dbMigrateReset = this.migrateReset.bind(this);
@@ -149,12 +151,12 @@ class Cli {
       'controllers',
       path.join('vendor', 'http', 'controllers', 'Controller.js'),
       path.join('vendor', 'http', 'requests', 'Request.js'),
-      path.join('resources', 'views', 'base.jinja'),
+      path.join('resources', 'views', 'base.html'),
     ]);
 
     // Get the file content
     let controllerContent = fs.readFileSync(
-      `${__dirname}/cli/models/controllers/BaseController.js`,
+      `${__dirname}/cli/models/controllers/TemplateController.js`,
       'utf8'
     );
     // Replace all $name by the name of the controller
@@ -274,6 +276,54 @@ class Cli {
     fs.writeFileSync(path.join(this.path, jobsPath, name + '.js'), job, 'utf8');
 
     console.info(colors.success(`Made job ${baseName}`));
+  }
+
+  makeScrud(name, model) {
+    if (!name.endsWith('Controller')) {
+      name = `${name}Controller`;
+    }
+    name = name.replace('.js', '');
+
+    const reversePath = name.split('/').length - 1;
+    const appPath = '../config.js';
+    let basePath = '';
+    for (let i = 0; i < reversePath; i++) {
+      basePath += '../';
+    }
+    basePath += appPath;
+
+    const scrud = fs.readFileSync(
+      `${__dirname}/cli/models/controllers/Crud.js`,
+      'utf8'
+    );
+    const app = utils.getApp(this.path);
+    if (!app) {
+      return;
+    }
+    const controllerPath = app.options.init.controllers;
+    const controller = fs.readFileSync(
+      path.join(this.path, controllerPath, name + '.js'),
+      'utf8'
+    );
+    const scrudContent = scrud
+      .replace(/\$model/g, model)
+      .replace(/\$apppath/g, basePath);
+    // Insert at the end of the controller
+    const controllerContent = controller.replace(
+      /(.*)}(.*)/gs,
+      `$1
+    ${scrudContent}
+    }
+    $2`
+    );
+    // Create the file
+    fs.writeFileSync(
+      path.join(this.path, controllerPath, name + '.js'),
+      controllerContent,
+      'utf8'
+    );
+
+    console.info(colors.success(`Included scrud in ${name} based on ${model}`));
   }
 }
 
