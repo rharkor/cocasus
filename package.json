@@ -1,6 +1,6 @@
 {
   "name": "cocasus",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "main": "index.js",
   "preferGlobal": true,
   "bin": {
