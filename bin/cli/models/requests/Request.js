@@ -24,7 +24,11 @@ class Request {
     if (app.engine && app.engine.env) {
       let result = app.engine.env.render(`${root}/${viewsPath}/${path}`, data);
       if (format) {
-        result.replace(/\r/g, '').replace(/"/g, '\\"');
+        result = result
+          .replace(/\n/g, '')
+          .replace(/\r/g, '')
+          .replace(/"/g, '\\"')
+          .replace(/'/g, "\\'");
       }
       return result;
     }
