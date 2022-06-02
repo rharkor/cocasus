@@ -42,6 +42,10 @@ class Request {
     }
     return false;
   }
+
+  static async redirect(res, url) {
+    res.redirect(url);
+  }
 }
 
 module.exports = Request;
