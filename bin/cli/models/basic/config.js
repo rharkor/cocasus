@@ -43,6 +43,4 @@ coca.route(
 
 coca.route('get', '/home', HomeController.call('index'));
 
-HomeController.crud(coca, coca.models.user, '/crud/users');
-
 module.exports = coca;

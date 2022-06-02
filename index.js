@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const sassMiddleware = require('node-sass-middleware');
 const path = require('path');
+const multer = require('multer');
+const upload = multer();
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const i18n = require('i18next');
@@ -36,6 +38,7 @@ class Cocasus {
         cors: true,
         json: true,
         cookies: true,
+        form: true,
         controllers: 'controllers',
         static: 'resources/static',
         views: 'resources/views',
@@ -134,6 +137,10 @@ class Cocasus {
     }
     if (this.options.init.cookies) {
       this.app.use(cookieParser());
+    }
+    if (this.options.init.form) {
+      this.app.use(express.urlencoded({ extended: true }));
+      this.app.use(upload.array());
     }
 
     if (this.options.lang.enabled) {
