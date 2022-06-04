@@ -4,6 +4,18 @@
     "type": "file",
     "path": "models/basic/config.js"
   },
+  "install": {
+    "name": "npm i",
+    "type": "command"
+  },
+  "package.json": {
+    "name": "package.json",
+    "type": "file",
+    "path": "models/basic/package.json",
+    "replace": {
+      "$name": "$name"
+    }
+  },
   "nodemon.json": {
     "name": "nodemon.json",
     "type": "file",
