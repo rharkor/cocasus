@@ -1,4 +1,5 @@
 const express = require('express');
+const subdomain = require('express-subdomain');
 const cors = require('cors');
 const sassMiddleware = require('node-sass-middleware');
 const path = require('path');
@@ -25,11 +26,14 @@ class Cocasus {
     this.path = process.cwd();
     this.routes = [];
 
+    this.router = null;
+
     this.options = {
       listening: {
         message: 'App listening on http://$host:$port',
         verbose: true,
         host: utils.getEnv('HOST', null),
+        subdomain: utils.getEnv('SUBDOMAIN', null),
         port: utils.getEnv('PORT', 8080),
       },
       init: {
@@ -247,11 +251,16 @@ class Cocasus {
     const callbackRun = () => {
       if (this.options.listening.verbose) {
         const message = this.options.listening.message
-          .replace('$host', host)
+          .replace('$host', this.options.listening.subdomain + '.' + host)
           .replace('$port', port);
         console.log(colors.success(message), '\n');
       }
     };
+    if (this.options.listening.subdomain && this.router) {
+      this.app.use(subdomain(this.options.listening.subdomain, this.router));
+    } else if (this.router) {
+      this.app.use(this.router);
+    }
     if (!host) {
       host = 'localhost';
       this.server = this.app.listen(port, callbackRun);
@@ -268,7 +277,16 @@ class Cocasus {
         this.errorHandler(e, req, res, next);
       }
     };
-    this.app[method](path, callbackGuarded);
+    // Create the router if it doesn't exist
+    if (!this.router && this.options.listening.subdomain) {
+      this.router = express.Router();
+    }
+    if (this.router) {
+      this.app.use(this.router);
+      this.router[method](path, callbackGuarded);
+    } else {
+      this.app[method](path, callbackGuarded);
+    }
     this.routes.push({ method, path, name, description });
   }
 
