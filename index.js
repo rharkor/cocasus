@@ -251,7 +251,12 @@ class Cocasus {
     const callbackRun = () => {
       if (this.options.listening.verbose) {
         const message = this.options.listening.message
-          .replace('$host', this.options.listening.subdomain + '.' + host)
+          .replace(
+            '$host',
+            this.options.listening.subdomain
+              ? this.options.listening.subdomain + '.' + host
+              : host
+          )
           .replace('$port', port);
         console.log(colors.success(message), '\n');
       }
