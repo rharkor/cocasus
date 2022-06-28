@@ -32,7 +32,7 @@ class Database {
       } catch (err) {
         // handle it
         err.error = err.original;
-        return err;
+        throw err;
       }
     };
 

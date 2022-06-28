@@ -4,6 +4,8 @@ const cors = require('cors');
 const sassMiddleware = require('node-sass-middleware');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const formData = require('express-form-data');
+const bodyParser = require('body-parser');
 const fs = require('fs');
 const i18n = require('i18next');
 const Backend = require('i18next-node-fs-backend');
@@ -40,6 +42,7 @@ class Cocasus {
         cors: true,
         json: true,
         cookies: true,
+        form: true,
         controllers: 'controllers',
         static: 'resources/static',
         views: 'resources/views',
@@ -81,9 +84,6 @@ class Cocasus {
         enabled: true, // Set it to false if you don't want to use a database
       },
       lang: {
-        default: 'en',
-        queryParameter: 'lang',
-        cookie: 'lang',
         directory: 'resources/lang',
         enabled: true,
       },
@@ -138,6 +138,9 @@ class Cocasus {
     }
     if (this.options.init.cookies) {
       this.app.use(cookieParser());
+    }
+    if (this.options.init.form) {
+      this.app.use(bodyParser.urlencoded({ extended: true }));
     }
 
     if (this.options.lang.enabled) {
@@ -274,10 +277,10 @@ class Cocasus {
     }
   }
 
-  route(method, path, callback, name = '', description = '') {
-    const callbackGuarded = (req, res, next) => {
+  route(method, path, callback, ...options) {
+    const callbackGuarded = async (req, res, next) => {
       try {
-        callback(req, res, next);
+        await callback(req, res, next);
       } catch (e) {
         this.errorHandler(e, req, res, next);
       }
@@ -292,7 +295,12 @@ class Cocasus {
     } else {
       this.app[method](path, callbackGuarded);
     }
-    this.routes.push({ method, path, name, description });
+    this.routes.push({
+      method,
+      path,
+      name: options.name || '',
+      description: options.description || '',
+    });
   }
 
   getRoutes() {

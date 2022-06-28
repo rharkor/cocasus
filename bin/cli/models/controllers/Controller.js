@@ -4,7 +4,7 @@ const sp = require('synchronized-promise');
 class Controller {
   static call(method) {
     // Call the method
-    return (req, res, next) => {
+    return async (req, res, next) => {
       try {
         // Pass Request.validate to the req
         req.validate = (rules) => {
@@ -23,15 +23,19 @@ class Controller {
           return validation;
         };
 
-        const resp = this[method](req, res, next);
+        const resp = await this[method](req, res, next);
         // Test if the response is a function
         if (typeof resp === 'function') {
-          resp(req, res, next);
+          await resp(req, res, next);
           return;
+        }
+        // Test if the response is an error
+        if (resp instanceof Error) {
+          throw resp;
         }
         res.send(resp);
       } catch (error) {
-        next(new Error(error));
+        throw new Error(error);
       }
     };
   }
