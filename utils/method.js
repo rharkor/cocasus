@@ -49,12 +49,6 @@ utils.printEnvMessages = (exclude) => {
   if (envMessages.length > 0) {
     exclude.forEach((element) => {
       envMessages = envMessages.filter((message) => {
-        console.log(
-          message[0]
-            .replace(/.*;0m/, '')
-            .startsWith(element.toUpperCase() + '_'),
-          element.toUpperCase()
-        );
         if (
           !message[0]
             .replace(/.*;0m/, '')

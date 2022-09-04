@@ -28,21 +28,17 @@ class Cocasus {
     this.path = process.cwd();
     this.routes = [];
 
-    this.router = null;
-
     this.options = {
       listening: {
         message: 'App listening on http://$host:$port',
         verbose: true,
         host: utils.getEnv('HOST', null),
-        subdomain: utils.getEnv('SUBDOMAIN', null),
         port: utils.getEnv('PORT', 8080),
       },
       init: {
         cors: true,
         json: true,
         cookies: true,
-        form: true,
         controllers: 'controllers',
         static: 'resources/static',
         views: 'resources/views',
@@ -84,6 +80,9 @@ class Cocasus {
         enabled: true, // Set it to false if you don't want to use a database
       },
       lang: {
+        default: 'en',
+        queryParameter: 'lang',
+        cookie: 'lang',
         directory: 'resources/lang',
         enabled: true,
       },
