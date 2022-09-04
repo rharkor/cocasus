@@ -4,6 +4,8 @@ const inquirer = require('inquirer');
 const path = require('path');
 const exec = util.promisify(require('child_process').exec);
 
+const colors = require('../../../utils/method').colors;
+
 class Structure {
   constructor(path) {
     // Read the file struct.json

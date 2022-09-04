@@ -12,12 +12,10 @@ class BaseModel {
       },
       createdAt: {
         allowNull: false,
-        defaultValue: DataTypes.NOW,
         type: DataTypes.DATE,
       },
       updatedAt: {
         allowNull: false,
-        defaultValue: DataTypes.NOW,
         type: DataTypes.DATE,
       },
     };

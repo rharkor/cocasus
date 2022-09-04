@@ -1,8 +1,11 @@
 const express = require('express');
+const subdomain = require('express-subdomain');
 const cors = require('cors');
 const sassMiddleware = require('node-sass-middleware');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const formData = require('express-form-data');
+const bodyParser = require('body-parser');
 const fs = require('fs');
 const i18n = require('i18next');
 const Backend = require('i18next-node-fs-backend');
@@ -25,17 +28,21 @@ class Cocasus {
     this.path = process.cwd();
     this.routes = [];
 
+    this.router = null;
+
     this.options = {
       listening: {
         message: 'App listening on http://$host:$port',
         verbose: true,
         host: utils.getEnv('HOST', null),
+        subdomain: utils.getEnv('SUBDOMAIN', null),
         port: utils.getEnv('PORT', 8080),
       },
       init: {
         cors: true,
         json: true,
         cookies: true,
+        form: true,
         controllers: 'controllers',
         static: 'resources/static',
         views: 'resources/views',
@@ -46,9 +53,9 @@ class Cocasus {
           path: './log',
           fileName: 'error.log',
           message: 'Something went wrong..',
-          exceptionCode: utils.getEnv('EXCEPTION_CODE', 500),
+          exceptionCode: utils.getEnv('LOGGER_EXCEPTION_CODE', 500),
           exceptionTemplate: null,
-          routeUndefinedCode: utils.getEnv('ROUTE_UNDEFINED_CODE', 404),
+          routeUndefinedCode: utils.getEnv('LOGGER_ROUTE_UNDEFINED_CODE', 404),
           routeUndefinedTemplate: null,
         },
         access: {
@@ -77,9 +84,6 @@ class Cocasus {
         enabled: true, // Set it to false if you don't want to use a database
       },
       lang: {
-        default: 'en',
-        queryParameter: 'lang',
-        cookie: 'lang',
         directory: 'resources/lang',
         enabled: true,
       },
@@ -135,6 +139,9 @@ class Cocasus {
     if (this.options.init.cookies) {
       this.app.use(cookieParser());
     }
+    if (this.options.init.form) {
+      this.app.use(bodyParser.urlencoded({ extended: true }));
+    }
 
     if (this.options.lang.enabled) {
       // Setup lang
@@ -160,13 +167,25 @@ class Cocasus {
     if (this.options.init.viewEngine) {
       if (this.options.init.viewEngine === 'nunjucks') {
         const nunjucks = require('nunjucks');
-        nunjucks.configure(this.options.init.views, {
+        const env = nunjucks.configure(this.options.init.views, {
           autoescape: true,
           express: this.app,
         });
+        this.engine = {};
+        this.engine.env = env;
         this.app.engine('jinja', nunjucks.render);
+        this.app.set('engine', env);
         this.app.set('view engine', 'jinja');
       }
+      this.app.use((req, res, next) => {
+        const engine = res.app.get('engine');
+        const config = req.app.get('config');
+
+        engine.addGlobal('config', config);
+        engine.addGlobal('request', req);
+
+        next();
+      });
     }
     this.app.use(
       sassMiddleware({
@@ -209,7 +228,14 @@ class Cocasus {
       );
     }
 
-    utils.printEnvMessages();
+    const exclusions = [];
+    if (!this.options.logger.enabled) {
+      exclusions.push('logger');
+    }
+    if (!this.options.db.enabled) {
+      exclusions.push('db');
+    }
+    utils.printEnvMessages(exclusions);
 
     this.authDb();
 
@@ -228,11 +254,21 @@ class Cocasus {
     const callbackRun = () => {
       if (this.options.listening.verbose) {
         const message = this.options.listening.message
-          .replace('$host', host)
+          .replace(
+            '$host',
+            this.options.listening.subdomain
+              ? this.options.listening.subdomain + '.' + host
+              : host
+          )
           .replace('$port', port);
         console.log(colors.success(message), '\n');
       }
     };
+    if (this.options.listening.subdomain && this.router) {
+      this.app.use(subdomain(this.options.listening.subdomain, this.router));
+    } else if (this.router) {
+      this.app.use(this.router);
+    }
     if (!host) {
       host = 'localhost';
       this.server = this.app.listen(port, callbackRun);
@@ -241,16 +277,30 @@ class Cocasus {
     }
   }
 
-  route(method, path, callback, name = '', description = '') {
-    const callbackGuarded = (req, res, next) => {
+  route(method, path, callback, ...options) {
+    const callbackGuarded = async (req, res, next) => {
       try {
-        callback(req, res, next);
+        await callback(req, res, next);
       } catch (e) {
         this.errorHandler(e, req, res, next);
       }
     };
-    this.app[method](path, callbackGuarded);
-    this.routes.push({ method, path, name, description });
+    // Create the router if it doesn't exist
+    if (!this.router && this.options.listening.subdomain) {
+      this.router = express.Router();
+    }
+    if (this.router) {
+      this.app.use(this.router);
+      this.router[method](path, callbackGuarded);
+    } else {
+      this.app[method](path, callbackGuarded);
+    }
+    this.routes.push({
+      method,
+      path,
+      name: options.name || '',
+      description: options.description || '',
+    });
   }
 
   getRoutes() {

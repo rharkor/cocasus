@@ -32,7 +32,7 @@ class Database {
       } catch (err) {
         // handle it
         err.error = err.original;
-        return err;
+        throw err;
       }
     };
 
@@ -52,11 +52,6 @@ class Database {
     }
     try {
       await this.sequelize.authenticate();
-      console.log(
-        colors.success(
-          'Connection with the database has been established successfully.'
-        )
-      );
       this.referenceAllModels();
     } catch (error) {
       console.error(colors.error('Unable to connect to the database:'), error);
